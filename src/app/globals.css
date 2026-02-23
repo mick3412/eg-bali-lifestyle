@@ -1,26 +1,44 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8f6f2;
+  --foreground: #2c2c2c;
+  --muted: #6b6b6b;
+  --accent: #a67c52;
+  --accent-light: #c4a77d;
+  --border: #e8e4dc;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-border: var(--border);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-serif: Georgia, "Times New Roman", serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+/* 連結與按鈕樣式 */
+a.cta-link {
+  @apply inline-flex items-center gap-2 border border-white/90 text-white px-5 py-2.5 text-sm tracking-widest uppercase hover:bg-white/10 transition-colors;
+}
+
+a.text-link {
+  @apply text-foreground hover:text-accent transition-colors;
+}
+
+.link-arrow::after {
+  content: " →";
 }

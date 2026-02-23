@@ -1,0 +1,25 @@
+{
+  "storyTitle": "Our Story",
+  "storyContent": [
+    "Eg. Bali Lifestyle was born from a belief that the things we live with should reflect intention, craft, and care. We partner with artisans who share our commitment to quality and sustainability.",
+    "Every product in our collection is thoughtfully sourced and made with natural ingredients, designed to bring beauty and presence to daily rituals.",
+    "We hope each piece carries the warmth and intention of its making from the studio to your home."
+  ],
+  "values": [
+    {
+      "title": "Craftsmanship",
+      "description": "Every product is handcrafted by skilled artisans using traditional techniques passed down through generations."
+    },
+    {
+      "title": "Sustainability",
+      "description": "We prioritize natural, responsibly sourced ingredients and minimal packaging in everything we create."
+    },
+    {
+      "title": "Intention",
+      "description": "We believe in mindful consumption — fewer, better things that bring joy and purpose to daily life."
+    }
+  ],
+  "founderTitle": "FOUNDER",
+  "founderName": "Eg. Bali Lifestyle",
+  "founderBio": "Founded with a vision to bridge mindful living with thoughtful design."
+}

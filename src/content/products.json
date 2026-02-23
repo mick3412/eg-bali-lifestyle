@@ -1,0 +1,92 @@
+[
+  {
+    "id": "1",
+    "slug": "ceramic-body-lotion",
+    "name": "陶瓷身體乳液",
+    "nameEn": "Ceramic Body Lotion",
+    "category": "body-care",
+    "price": 1280,
+    "originalPrice": 1580,
+    "description": "以天然植物精華與乳木果油製成的身體乳液，質地輕盈易吸收，為肌膚帶來深層滋潤與柔嫩觸感。陶瓷質感瓶身，為日常保養增添儀式感。",
+    "descriptionShort": "輕盈滋潤，陶瓷瓶身。",
+    "ingredients": "水、乳木果油、荷荷芭油、蘆薈萃取、維他命E、天然香料",
+    "sizes": ["200ml"],
+    "image": "/images/placeholder.svg",
+    "buyUrl": "https://example.com/buy/1",
+    "order": 1
+  },
+  {
+    "id": "2",
+    "slug": "nourishing-face-cream",
+    "name": "滋養面霜",
+    "nameEn": "Nourishing Face Cream",
+    "category": "skincare",
+    "price": 1680,
+    "description": "富含天然油脂與植物萃取，深層滋養肌膚，適合乾性與敏感肌。玻璃罐裝，質感溫潤。",
+    "descriptionShort": "深層滋養，溫和配方。",
+    "image": "/images/placeholder.svg",
+    "buyUrl": "https://example.com/buy/2",
+    "order": 2
+  },
+  {
+    "id": "3",
+    "slug": "botanical-soap-bar",
+    "name": "植物性香皂",
+    "nameEn": "Botanical Soap Bar",
+    "category": "body-care",
+    "price": 480,
+    "description": "純植物配方香皂，溫和潔淨，留香自然。",
+    "image": "/images/placeholder.svg",
+    "buyUrl": "https://example.com/buy/3",
+    "order": 3
+  },
+  {
+    "id": "4",
+    "slug": "essential-oil-blend",
+    "name": "精油",
+    "nameEn": "Essential Oil Blend",
+    "category": "fragrance",
+    "price": 980,
+    "originalPrice": 1200,
+    "description": "精選天然精油調和，可用於擴香、按摩或泡澡。",
+    "image": "/images/placeholder.svg",
+    "buyUrl": "https://example.com/buy/4",
+    "order": 4
+  },
+  {
+    "id": "5",
+    "slug": "eucalyptus-candle",
+    "name": "尤加利蠟燭",
+    "nameEn": "Eucalyptus Candle",
+    "category": "home",
+    "price": 880,
+    "description": "尤加利香調蠟燭，清新舒緩。",
+    "image": "/images/placeholder.svg",
+    "buyUrl": "https://example.com/buy/5",
+    "order": 5
+  },
+  {
+    "id": "6",
+    "slug": "cedar-room-spray",
+    "name": "雪松室內噴霧",
+    "nameEn": "Cedar Room Spray",
+    "category": "home",
+    "price": 750,
+    "description": "雪松與草本香調，為空間帶來寧靜氛圍。",
+    "image": "/images/placeholder.svg",
+    "buyUrl": "https://example.com/buy/6",
+    "order": 6
+  },
+  {
+    "id": "7",
+    "slug": "lavender-hand-wash",
+    "name": "薰衣草洗手乳",
+    "nameEn": "Lavender Hand Wash",
+    "category": "body-care",
+    "price": 680,
+    "description": "薰衣草香調洗手乳，溫和潔淨雙手。",
+    "image": "/images/placeholder.svg",
+    "buyUrl": "https://example.com/buy/7",
+    "order": 7
+  }
+]
