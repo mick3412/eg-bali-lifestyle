@@ -7,55 +7,100 @@ import { defineType, defineField, defineArrayMember } from "sanity";
 /** 產品子分類：在 Studio 可新增/編輯，Shop 頁導覽與篩選依此列表 */
 export const productCategory = defineType({
   name: "productCategory",
-  title: "Product Category",
+  title: "產品分類",
   type: "document",
   fields: [
     defineField({
       name: "slug",
-      title: "Slug",
+      title: "分類代碼（Slug）",
       type: "slug",
       description: "網址用英文代碼，例如 skincare、body-care",
       options: { source: "name" },
       validation: (r) => r.required(),
     }),
-    defineField({ name: "name", title: "Display Name (e.g. Skincare)", type: "string", validation: (r) => r.required() }),
-    defineField({ name: "order", title: "Order (顯示順序，數字愈小愈前)", type: "number" }),
+    defineField({
+      name: "name",
+      title: "顯示名稱",
+      type: "string",
+      description: "前台顯示於 Shop 分類導覽，例如：Skincare",
+      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "order",
+      title: "顯示順序",
+      type: "number",
+      description: "數字愈小愈前面，留空則依建立時間排序",
+    }),
   ],
 });
 
 export const product = defineType({
   name: "product",
-  title: "Product",
+  title: "產品",
   type: "document",
   fields: [
     defineField({ name: "name", title: "產品名稱（中文）", type: "string", validation: (r) => r.required() }),
-    defineField({ name: "nameEn", title: "Product Name (English)", type: "string" }),
+    defineField({ name: "nameEn", title: "產品名稱（英文）", type: "string" }),
     defineField({
       name: "slug",
-      title: "Slug",
+      title: "網址代碼（Slug）",
       type: "slug",
+      description: "產品網址用英文字母，通常由英文名稱自動產生，可手動調整（需保持唯一）",
       options: { source: "nameEn" },
       validation: (r) => r.required(),
     }),
     defineField({
       name: "category",
-      title: "Category",
+      title: "產品分類",
       type: "reference",
       to: [{ type: "productCategory" }],
       validation: (r) => r.required(),
     }),
-    defineField({ name: "price", title: "Price (NT$)", type: "number", validation: (r) => r.required() }),
-    defineField({ name: "originalPrice", title: "Original Price (NT$) - 原價", type: "number" }),
-    defineField({ name: "description", title: "Description", type: "text", validation: (r) => r.required() }),
-    defineField({ name: "descriptionShort", title: "Short Description", type: "string" }),
-    defineField({ name: "ingredients", title: "Ingredients 成分", type: "string" }),
+    defineField({
+      name: "price",
+      title: "售價（NT$）",
+      type: "number",
+      description: "產品實際售價，會顯示在產品卡片與產品頁",
+      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "originalPrice",
+      title: "原價（NT$，可選）",
+      type: "number",
+      description: "如需顯示折扣，原價會以刪除線顯示在售價旁邊",
+    }),
+    defineField({
+      name: "description",
+      title: "產品說明（內文）",
+      type: "text",
+      description: "產品詳細描述，顯示在產品頁主內文位置",
+      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "descriptionShort",
+      title: "簡短說明（列表使用，可選）",
+      type: "string",
+      description: "可填一小段摘要，未來可用於列表或精選區塊顯示",
+    }),
+    defineField({
+      name: "ingredients",
+      title: "成分（Ingredients）",
+      type: "string",
+      description: "產品主要成分，會顯示在產品頁「成分」區塊",
+    }),
     defineField({
       name: "sizes",
-      title: "Sizes 尺寸",
+      title: "容量／尺寸列表",
       type: "array",
       of: [{ type: "string" }],
     }),
-    defineField({ name: "image", title: "Main Image", type: "image", options: { hotspot: true } }),
+    defineField({
+      name: "image",
+      title: "主圖（列表與預設輪播）",
+      type: "image",
+      description: "產品主視覺圖片，會用於列表卡片與輪播預設顯示",
+      options: { hotspot: true },
+    }),
     defineField({
       name: "gallery",
       title: "產品圖/影片輪播",
@@ -66,7 +111,12 @@ export const product = defineType({
         defineArrayMember({ type: "file", options: { accept: "video/*" } }),
       ],
     }),
-    defineField({ name: "buyUrl", title: "Buy URL (外部電商連結)", type: "url" }),
+    defineField({
+      name: "buyUrl",
+      title: "購買連結（外部電商）",
+      type: "url",
+      description: "導向外部電商或購物車的 URL，產品頁「前往購買」按鈕會連到此處",
+    }),
     defineField({
       name: "featured",
       title: "首頁精選 (Selected Products)",
@@ -104,7 +154,7 @@ const articleContentBlock = defineArrayMember({
         name: "link",
         type: "object",
         title: "超連結",
-        fields: [{ name: "href", type: "url", title: "URL" }],
+        fields: [{ name: "href", type: "url", title: "網址" }],
       },
     ],
   },
@@ -121,29 +171,64 @@ const articleImageBlock = defineArrayMember({
 
 export const article = defineType({
   name: "article",
-  title: "Article",
+  title: "文章",
   type: "document",
   fields: [
-    defineField({ name: "title", title: "Title", type: "string", validation: (r) => r.required() }),
+    defineField({
+      name: "title",
+      title: "標題",
+      type: "string",
+      description: "文章主標題，會顯示在列表與文章頁上方",
+      validation: (r) => r.required(),
+    }),
     defineField({
       name: "slug",
-      title: "Slug",
+      title: "網址代碼（Slug）",
       type: "slug",
+      description: "文章網址用英文字母，通常由標題自動產生，可手動調整（需保持唯一）",
       options: { source: "title" },
       validation: (r) => r.required(),
     }),
-    defineField({ name: "category", title: "Category", type: "string" }),
-    defineField({ name: "excerpt", title: "Excerpt", type: "text", validation: (r) => r.required() }),
+    defineField({
+      name: "category",
+      title: "分類（文字）",
+      type: "string",
+      description: "文章分類名稱，會顯示在卡片與文章頁上方，可自由輸入文字",
+    }),
+    defineField({
+      name: "excerpt",
+      title: "摘要（列表顯示）",
+      type: "text",
+      description: "會顯示在首頁與 Journal 列表的文章卡片上，建議 1–3 行",
+      validation: (r) => r.required(),
+    }),
     defineField({
       name: "content",
-      title: "Content",
+      title: "內文區塊",
       type: "array",
       of: [articleContentBlock, articleImageBlock],
       validation: (r) => r.required(),
     }),
-    defineField({ name: "image", title: "Image", type: "image", options: { hotspot: true } }),
-    defineField({ name: "publishedAt", title: "Published At", type: "date", validation: (r) => r.required() }),
-    defineField({ name: "order", title: "Order", type: "number" }),
+    defineField({
+      name: "image",
+      title: "首圖",
+      type: "image",
+      description: "會顯示在文章上方與列表縮圖位置",
+      options: { hotspot: true },
+    }),
+    defineField({
+      name: "publishedAt",
+      title: "發佈日期",
+      type: "date",
+      description: "用於排序與顯示日期，建議填寫實際上線時間",
+      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "order",
+      title: "排序（選填）",
+      type: "number",
+      description: "同一天有多篇文章時，可用此欄位微調排序，數字愈小愈前面",
+    }),
     defineField({
       name: "featured",
       title: "首頁精選 (From the Journal)",
@@ -168,34 +253,34 @@ export const article = defineType({
 
 export const about = defineType({
   name: "about",
-  title: "About",
+  title: "關於我們",
   type: "document",
   fields: [
-    defineField({ name: "storyTitle", title: "Story Title", type: "string" }),
+    defineField({ name: "storyTitle", title: "故事段落標題", type: "string", description: "例如：Our Story、Our Values 等" }),
     defineField({
       name: "storyContent",
-      title: "Story Content",
+      title: "故事內容段落",
       type: "array",
       of: [{ type: "text" }],
     }),
     defineField({
       name: "values",
-      title: "Values",
+      title: "品牌價值列表",
       type: "array",
       of: [
         {
           type: "object",
           fields: [
-            { name: "title", type: "string", title: "Title" },
-            { name: "description", type: "text", title: "Description" },
+            { name: "title", type: "string", title: "標題" },
+            { name: "description", type: "text", title: "說明" },
           ],
         },
       ],
     }),
-    defineField({ name: "founderTitle", title: "Founder Title", type: "string" }),
-    defineField({ name: "founderName", title: "Founder Name", type: "string" }),
-    defineField({ name: "founderImage", title: "Founder Image", type: "image" }),
-    defineField({ name: "founderBio", title: "Founder Bio", type: "text" }),
+    defineField({ name: "founderTitle", title: "創辦人區塊標題", type: "string" }),
+    defineField({ name: "founderName", title: "創辦人姓名", type: "string" }),
+    defineField({ name: "founderImage", title: "創辦人照片", type: "image" }),
+    defineField({ name: "founderBio", title: "創辦人介紹", type: "text" }),
   ],
 });
 
@@ -213,7 +298,7 @@ const bannerImageMember = defineArrayMember({
 
 export const siteSettings = defineType({
   name: "siteSettings",
-  title: "Site Settings",
+  title: "網站設定",
   type: "document",
   fields: [
     defineField({
@@ -224,12 +309,32 @@ export const siteSettings = defineType({
       validation: (r) => r.max(3),
       of: [bannerImageMember],
     }),
-    defineField({ name: "siteName", title: "Site Name", type: "string" }),
-    defineField({ name: "tagline", title: "Tagline", type: "string" }),
-    defineField({ name: "taglineLong", title: "Tagline Long", type: "string" }),
-    defineField({ name: "email", title: "Email", type: "string" }),
-    defineField({ name: "instagramHandle", title: "Instagram Handle", type: "string" }),
-    defineField({ name: "instagramUrl", title: "Instagram URL", type: "url" }),
+    defineField({ name: "siteName", title: "網站名稱", type: "string" }),
+    defineField({
+      name: "tagline",
+      title: "首頁標語（短）",
+      type: "string",
+      description: "顯示在首頁 Hero 區塊的大標語，可用一句話描述品牌",
+    }),
+    defineField({
+      name: "taglineLong",
+      title: "首頁標語（長，可選）",
+      type: "string",
+      description: "較長版本的品牌敘述，視設計需要顯示",
+    }),
+    defineField({ name: "email", title: "聯絡 Email", type: "string" }),
+    defineField({
+      name: "instagramHandle",
+      title: "Instagram 帳號（@）",
+      type: "string",
+      description: "例如：@eg.bali，會顯示在首頁 Follow Along 區塊",
+    }),
+    defineField({
+      name: "instagramUrl",
+      title: "Instagram 網址",
+      type: "url",
+      description: "點擊帳號文字時導向的官方 IG 連結",
+    }),
     defineField({
       name: "instagramPostUrl1",
       title: "Instagram 貼文 URL 1",
@@ -239,7 +344,12 @@ export const siteSettings = defineType({
     defineField({ name: "instagramPostUrl2", title: "Instagram 貼文 URL 2", type: "url" }),
     defineField({ name: "instagramPostUrl3", title: "Instagram 貼文 URL 3", type: "url" }),
     defineField({ name: "instagramPostUrl4", title: "Instagram 貼文 URL 4", type: "url" }),
-    defineField({ name: "copyright", title: "Copyright", type: "string" }),
+    defineField({
+      name: "copyright",
+      title: "版權文字",
+      type: "string",
+      description: "顯示在頁面最下方，例如：© 2026 Eg. Bali Lifestyle",
+    }),
     defineField({
       name: "googleTagId",
       title: "Google 廣告追蹤 (Tag ID)",
@@ -272,7 +382,7 @@ const TYPOGRAPHY_KEYS = [
 
 export const typographySettings = defineType({
   name: "typographySettings",
-  title: "Typography 字體設定",
+  title: "文字樣式設定（Typography）",
   type: "document",
   fields: [
     defineField({
@@ -298,11 +408,26 @@ export const typographySettings = defineType({
 
 export const instagramPost = defineType({
   name: "instagramPost",
-  title: "Instagram Post",
+  title: "Instagram 貼文（清單）",
   type: "document",
   fields: [
-    defineField({ name: "imageUrl", title: "Image URL", type: "url" }),
-    defineField({ name: "link", title: "Link", type: "url" }),
-    defineField({ name: "order", title: "Order", type: "number" }),
+    defineField({
+      name: "imageUrl",
+      title: "圖片網址",
+      type: "url",
+      description: "Instagram 貼文縮圖或圖片的完整 URL（若使用）",
+    }),
+    defineField({
+      name: "link",
+      title: "貼文連結",
+      type: "url",
+      description: "Instagram 貼文或短片的網址",
+    }),
+    defineField({
+      name: "order",
+      title: "顯示順序",
+      type: "number",
+      description: "數字愈小愈前面顯示",
+    }),
   ],
 });
