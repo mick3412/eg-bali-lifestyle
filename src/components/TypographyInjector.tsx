@@ -33,7 +33,6 @@ export default async function TypographyInjector() {
     .map(([key]) => `.typo-${key}{font-family:var(--typo-${key}-font);font-size:var(--typo-${key}-size);}`)
     .join("\n");
 
-  return (
-    <style dangerouslySetInnerHTML={{ __html => `:root{\n${vars}\n}\n${classes}` }} />
-  );
+  const html = `:root{\n${vars}\n}\n${classes}`;
+  return <style dangerouslySetInnerHTML={{ __html: html }} />;
 }
