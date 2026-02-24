@@ -29,7 +29,6 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-10 md:py-14">
-      {/* 麵包屑 */}
       <nav className="text-sm text-[var(--muted)] mb-6">
         <Link href="/" className="hover:text-foreground">首頁</Link>
         <span className="mx-1">/</span>
@@ -102,7 +101,6 @@ export default async function ProductPage({ params }: Props) {
         </div>
       </div>
 
-      {/* 相關產品 */}
       {related.length > 0 && (
         <section className="mt-16 md:mt-24 pt-14 border-t border-[var(--border)]">
           <h2 className="font-serif text-2xl font-semibold text-foreground mb-6">相關產品</h2>

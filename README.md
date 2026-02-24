@@ -19,6 +19,8 @@ npm run dev
 
 開啟 [http://localhost:3000](http://localhost:3000)。
 
+**發佈到 egbalitest.shop**：請依 [DEPLOY.md](./DEPLOY.md) 部署到 Vercel、設定 GoDaddy DNS 與 Sanity CORS。
+
 ## 內容管理（CMS）
 
 ### 使用 Sanity
