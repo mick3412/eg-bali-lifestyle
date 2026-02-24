@@ -1,6 +1,8 @@
 /**
  * 內容讀取層：依環境變數選擇從 Sanity 或本地 JSON 讀取
+ * 使用 React cache() 在同一 request 內去重，避免 layout 與 page 重複請求
  */
+import { cache } from "react";
 import type { Product, Article, AboutContent, SiteSettings, InstagramPost, ProductCategoryItem, TypographySettings } from "@/types";
 import { isSanityConfigured } from "./sanity";
 import {
@@ -14,6 +16,7 @@ import {
   getArticlesFromSanity,
   getArticleBySlugFromSanity,
   getAboutFromSanity,
+  getRelatedProductsFromSanity,
   getInstagramPostsFromSanity,
 } from "./cms-sanity";
 
@@ -29,7 +32,7 @@ const localArticles = articlesData as Article[];
 const localAbout = aboutData as AboutContent;
 const localCategories = categoriesData as ProductCategoryItem[];
 
-export async function getSiteSettings(): Promise<SiteSettings> {
+async function getSiteSettingsUncached(): Promise<SiteSettings> {
   if (isSanityConfigured()) {
     try {
       const fromSanity = await getSiteSettingsFromSanity();
@@ -41,8 +44,10 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   return localSettings;
 }
 
+export const getSiteSettings = cache(getSiteSettingsUncached);
+
 /** 取得全站字體設定（Typography 分類與字體/字級） */
-export async function getTypography(): Promise<TypographySettings> {
+async function getTypographyUncached(): Promise<TypographySettings> {
   if (isSanityConfigured()) {
     const fromSanity = await getTypographyFromSanity();
     if (fromSanity?.styles?.length) return fromSanity;
@@ -50,8 +55,10 @@ export async function getTypography(): Promise<TypographySettings> {
   return { styles: [] };
 }
 
+export const getTypography = cache(getTypographyUncached);
+
 /** 取得產品分類列表（Shop 子分類導覽與篩選用；Sanity 可新增/編輯） */
-export async function getCategories(): Promise<ProductCategoryItem[]> {
+async function getCategoriesUncached(): Promise<ProductCategoryItem[]> {
   if (isSanityConfigured()) {
     try {
       const list = await getCategoriesFromSanity();
@@ -63,6 +70,8 @@ export async function getCategories(): Promise<ProductCategoryItem[]> {
   return [...localCategories].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
 
+export const getCategories = cache(getCategoriesUncached);
+
 /** 依 slug 取得分類顯示名稱 */
 export async function getCategoryName(slug: string): Promise<string> {
   const categories = await getCategories();
@@ -70,7 +79,7 @@ export async function getCategoryName(slug: string): Promise<string> {
   return found?.name ?? slug;
 }
 
-export async function getProducts(categorySlug?: string): Promise<Product[]> {
+async function getProductsUncached(categorySlug?: string): Promise<Product[]> {
   if (isSanityConfigured()) {
     try {
       return await getProductsFromSanity(categorySlug);
@@ -83,7 +92,9 @@ export async function getProducts(categorySlug?: string): Promise<Product[]> {
   return products.filter((p) => p.category === categorySlug);
 }
 
-export async function getProductBySlug(slug: string): Promise<Product | undefined> {
+export const getProducts = cache(getProductsUncached);
+
+async function getProductBySlugUncached(slug: string): Promise<Product | undefined> {
   if (isSanityConfigured()) {
     const p = await getProductBySlugFromSanity(slug);
     if (p) return p;
@@ -91,15 +102,26 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
   return localProducts.find((p) => p.slug === slug);
 }
 
+export const getProductBySlug = cache(getProductBySlugUncached);
+
 /** 首頁 Selected Products：只回傳 CMS 中勾選「首頁精選」的產品，不再使用本地預設 */
-export async function getFeaturedProducts(limit = 8): Promise<Product[]> {
-  if (isSanityConfigured()) {
-    return getFeaturedProductsFromSanity(limit);
-  }
+async function getFeaturedProductsUncached(limit = 8): Promise<Product[]> {
+  if (isSanityConfigured()) return getFeaturedProductsFromSanity(limit);
   return [];
 }
 
+export const getFeaturedProducts = cache(getFeaturedProductsUncached);
+
+/** 相關產品：Sanity 時用專用查詢只取同分類數筆，避免拉全量產品 */
 export async function getRelatedProducts(product: Product, limit = 4): Promise<Product[]> {
+  if (isSanityConfigured()) {
+    try {
+      const list = await getRelatedProductsFromSanity(product.id, product.category, limit);
+      if (list.length > 0) return list;
+    } catch {
+      // fallback 下用全量篩選
+    }
+  }
   const all = await getProducts();
   return all
     .filter((p) => p.id !== product.id && (p.category === product.category || Math.random() > 0.5))
@@ -107,14 +129,14 @@ export async function getRelatedProducts(product: Product, limit = 4): Promise<P
 }
 
 /** 首頁 From the Journal：只回傳 CMS 中勾選精選的文章，不再使用本地預設 */
-export async function getFeaturedArticles(limit = 6): Promise<Article[]> {
-  if (isSanityConfigured()) {
-    return getFeaturedArticlesFromSanity(limit);
-  }
+async function getFeaturedArticlesUncached(limit = 6): Promise<Article[]> {
+  if (isSanityConfigured()) return getFeaturedArticlesFromSanity(limit);
   return [];
 }
 
-export async function getArticles(limit?: number): Promise<Article[]> {
+export const getFeaturedArticles = cache(getFeaturedArticlesUncached);
+
+async function getArticlesUncached(limit?: number): Promise<Article[]> {
   if (isSanityConfigured()) {
     const list = await getArticlesFromSanity(limit);
     if (list.length > 0) return list;
@@ -125,13 +147,17 @@ export async function getArticles(limit?: number): Promise<Article[]> {
   return limit ? sorted.slice(0, limit) : sorted;
 }
 
-export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
+export const getArticles = cache(getArticlesUncached);
+
+async function getArticleBySlugUncached(slug: string): Promise<Article | undefined> {
   if (isSanityConfigured()) {
     const a = await getArticleBySlugFromSanity(slug);
     if (a) return a;
   }
   return localArticles.find((a) => a.slug === slug);
 }
+
+export const getArticleBySlug = cache(getArticleBySlugUncached);
 
 export async function getArticlePrevNext(
   slug: string
@@ -145,13 +171,15 @@ export async function getArticlePrevNext(
   };
 }
 
-export async function getAboutContent(): Promise<AboutContent> {
+async function getAboutContentUncached(): Promise<AboutContent> {
   if (isSanityConfigured()) {
     const fromSanity = await getAboutFromSanity();
     if (fromSanity) return fromSanity;
   }
   return localAbout;
 }
+
+export const getAboutContent = cache(getAboutContentUncached);
 
 export async function getInstagramPosts(limit = 6): Promise<InstagramPost[]> {
   if (isSanityConfigured()) {

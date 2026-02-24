@@ -33,26 +33,23 @@ export default function HeroBanner({ images, tagline, ctaLabel = "Explore Shop",
 
   const content = (
     <div className="relative min-h-[70vh] flex items-center justify-center bg-[var(--border)] overflow-hidden">
-      <div className="absolute inset-0">
-        <Image
-          src={current.url}
-          alt={current.alt ?? ""}
-          fill
-          className="object-cover transition-opacity duration-700"
-          priority
-          sizes="100vw"
-          unoptimized={current.url.startsWith("http")}
-        />
-      </div>
-      {/* 多張時其餘圖預載並疊加做切換 */}
-      {list.length > 1 && list.map((img, i) => (
+      {list.map((img, i) => (
         <div
           key={i}
-          aria-hidden
+          aria-hidden={i !== index}
           className="absolute inset-0 transition-opacity duration-700"
           style={{ opacity: i === index ? 1 : 0, zIndex: i === index ? 1 : 0 }}
         >
-          <Image src={img.url} alt="" fill className="object-cover" sizes="100vw" unoptimized={img.url.startsWith("http")} />
+          <Image
+            src={img.url}
+            alt={i === index ? (img.alt ?? "") : ""}
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority={i === 0}
+            loading={i === 0 ? undefined : "lazy"}
+            unoptimized={img.url.startsWith("http")}
+          />
         </div>
       ))}
       <div className="relative z-10 text-center px-5 py-16">

@@ -278,6 +278,65 @@ export async function getProductBySlugFromSanity(slug: string): Promise<Product 
   };
 }
 
+/** 相關產品：依分類只取數筆，避免拉全量 */
+export async function getRelatedProductsFromSanity(
+  excludeId: string,
+  categorySlug: string,
+  limit: number
+): Promise<Product[]> {
+  if (!isSanityConfigured() || !categorySlug) return [];
+  const filter = `&& _id != $excludeId && (
+    (category->slug.current != null && lower(category->slug.current) == lower($categorySlug)) ||
+    (category->name != null && lower(category->name) == lower($categorySlug))
+  )`;
+  const list = await getClient().fetch<
+    Array<{
+      _id: string;
+      slug: { current: string };
+      name: string;
+      nameEn?: string;
+      category: { _id: string; slug: { current: string } | null; name?: string } | null;
+      price: number;
+      originalPrice?: number;
+      description: string;
+      descriptionShort?: string;
+      ingredients?: string;
+      sizes?: string[];
+      image?: string | null;
+      buyUrl?: string;
+      order?: number;
+      featured?: boolean;
+      homepageOrder?: number;
+      stockStatus?: string;
+    }>
+  >(
+    `*[_type == "product"]${filter} | order(order asc) [0...$limit] {
+      _id, slug, name, nameEn, "category": category->{ _id, slug, name },
+      price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, order, featured, homepageOrder, stockStatus
+    }`,
+    { excludeId, categorySlug, limit }
+  );
+  return list.map((p) => ({
+    id: p._id,
+    slug: p.slug?.current ?? p._id,
+    name: p.name,
+    nameEn: p.nameEn,
+    category: p.category?.slug?.current ?? "",
+    price: p.price,
+    originalPrice: p.originalPrice,
+    description: p.description,
+    descriptionShort: p.descriptionShort,
+    ingredients: p.ingredients,
+    sizes: p.sizes,
+    image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
+    buyUrl: p.buyUrl,
+    order: p.order,
+    featured: p.featured,
+    homepageOrder: p.homepageOrder,
+    stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,
+  }));
+}
+
 /** 首頁 From the Journal：只回傳有勾選精選的文章 */
 export async function getFeaturedArticlesFromSanity(limit = 6): Promise<Article[]> {
   if (!isSanityConfigured()) return [];

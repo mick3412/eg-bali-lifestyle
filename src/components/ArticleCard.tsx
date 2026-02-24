@@ -21,7 +21,7 @@ export default function ArticleCard({ article, variant = "default" }: ArticleCar
             alt=""
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="100vw"
+            sizes="(max-width: 768px) 100vw, 1024px"
           />
         </div>
         <p className="typo-cardMeta tracking-widest uppercase text-[var(--accent)] mb-1">{article.category}</p>
