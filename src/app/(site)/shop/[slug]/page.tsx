@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProductBySlug, getRelatedProducts, getCategoryName } from "@/lib/cms";
+import { getProductBySlug, getRelatedProducts, getCategoryName, getCategories } from "@/lib/cms";
 import ProductCard from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
+import ShopCategoryNav from "../ShopCategoryNav";
 
 function formatPrice(n: number) {
   return `NT$ ${n.toLocaleString()}`;
@@ -26,9 +27,10 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const [related, categoryName] = await Promise.all([
+  const [related, categoryName, categories] = await Promise.all([
     getRelatedProducts(product, 4),
     getCategoryName(product.category),
+    getCategories(),
   ]);
 
   const galleryItems = [
@@ -45,8 +47,9 @@ export default async function ProductPage({ params }: Props) {
         <span className="mx-1">/</span>
         <span className="text-foreground">{(product.name?.trim() || product.nameEn) ?? product.name}</span>
       </nav>
+      <ShopCategoryNav categories={categories} currentCategory={product.category} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 mt-8">
         <ProductGallery items={galleryItems} alt={(product.name?.trim() || product.nameEn) ?? product.name ?? ""} />
         <div>
           <p className="typo-caption tracking-widest uppercase text-[var(--muted)] mb-1">
@@ -66,7 +69,7 @@ export default async function ProductPage({ params }: Props) {
           )}
           {product.sizes && product.sizes.length > 0 && (
             <div className="mb-6">
-              <h3 className="typo-caption font-medium uppercase tracking-widest text-foreground mb-2">尺寸</h3>
+              <h3 className="typo-caption font-medium uppercase tracking-widest text-foreground mb-2">規格</h3>
               <p className="typo-bodySmall text-[var(--muted)]">{product.sizes.join("、")}</p>
             </div>
           )}
@@ -87,7 +90,11 @@ export default async function ProductPage({ params }: Props) {
               </p>
             )}
           </div>
-          {product.buyUrl ? (
+          {product.stockStatus === "out_of_stock" ? (
+            <span className="typo-button inline-flex items-center gap-2 bg-[var(--border)] text-[var(--muted)] px-6 py-3 cursor-not-allowed">
+              前往購買
+            </span>
+          ) : product.buyUrl ? (
             <a
               href={product.buyUrl}
               target="_blank"

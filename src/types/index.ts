@@ -70,7 +70,8 @@ export interface PortableTextBlock {
 
 export interface AboutContent {
   storyTitle: string;
-  storyContent: string[];
+  /** 純文字（舊資料）或 Portable Text 區塊（富文本：字型、超連結、圖片） */
+  storyContent: ArticleContent;
   values?: { title: string; description: string }[];
   founderTitle?: string;
   founderName?: string;

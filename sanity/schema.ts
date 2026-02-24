@@ -251,21 +251,51 @@ export const article = defineType({
   ],
 });
 
+/** About Our Story 內文：可設定字型、超連結、插入圖片 */
+const aboutStoryBlock = defineArrayMember({
+  type: "block",
+  marks: {
+    annotations: [
+      {
+        name: "link",
+        type: "object",
+        title: "超連結",
+        fields: [{ name: "href", type: "url", title: "網址" }],
+      },
+    ],
+  },
+  styles: [
+    { title: "內文", value: "normal" },
+    { title: "標題 H2", value: "h2" },
+    { title: "標題 H3", value: "h3" },
+  ],
+});
+
+const aboutStoryImageBlock = defineArrayMember({
+  type: "image",
+  options: { hotspot: true },
+  fields: [
+    { name: "alt", type: "string", title: "Alt 文字" },
+    { name: "link", type: "url", title: "圖片連結（點擊後開啟，選填）" },
+  ],
+});
+
 export const about = defineType({
   name: "about",
   title: "關於我們",
   type: "document",
   fields: [
-    defineField({ name: "storyTitle", title: "故事段落標題", type: "string", description: "例如：Our Story、Our Values 等" }),
+    defineField({ name: "storyTitle", title: "故事段落標題", type: "string", description: "例如：Our Story" }),
     defineField({
       name: "storyContent",
-      title: "故事內容段落",
+      title: "故事內容（Our Story）",
       type: "array",
-      of: [{ type: "text" }],
+      description: "可編輯內文、設定字型（標題/內文）、超連結與插入圖片",
+      of: [aboutStoryBlock, aboutStoryImageBlock],
     }),
     defineField({
       name: "values",
-      title: "品牌價值列表",
+      title: "品牌價值列表（前台已隱藏，僅保留於 CMS）",
       type: "array",
       of: [
         {
@@ -277,7 +307,7 @@ export const about = defineType({
         },
       ],
     }),
-    defineField({ name: "founderTitle", title: "創辦人區塊標題", type: "string" }),
+    defineField({ name: "founderTitle", title: "創辦人區塊標題（前台已隱藏）", type: "string" }),
     defineField({ name: "founderName", title: "創辦人姓名", type: "string" }),
     defineField({ name: "founderImage", title: "創辦人照片", type: "image" }),
     defineField({ name: "founderBio", title: "創辦人介紹", type: "text" }),

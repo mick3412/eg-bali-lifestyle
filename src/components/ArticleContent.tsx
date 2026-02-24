@@ -12,6 +12,8 @@ function urlFor(source: { _type?: string; asset?: { _ref: string } } | undefined
 const portableTextComponents: PortableTextComponents = {
   block: {
     normal: ({ children }) => <p className="typo-body mb-4 text-[var(--foreground)] leading-relaxed">{children}</p>,
+    h2: ({ children }) => <h2 className="typo-sectionTitle font-semibold text-foreground mt-8 mb-3">{children}</h2>,
+    h3: ({ children }) => <h3 className="typo-cardTitle font-semibold text-foreground mt-6 mb-2">{children}</h3>,
   },
   marks: {
     link: ({ value, children }) => (

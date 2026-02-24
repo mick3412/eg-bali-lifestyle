@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { getArticles } from "@/lib/cms";
 import ArticleCard from "@/components/ArticleCard";
+import JournalCategoryNav from "./JournalCategoryNav";
 
 export const metadata = {
   title: "Journal — Eg. Bali Lifestyle",
@@ -10,16 +10,54 @@ export const metadata = {
 /** 與首頁一致，定期向 Sanity 取最新文章列表 */
 export const revalidate = 60;
 
-export default async function JournalPage() {
-  const articles = await getArticles();
+function getUniqueCategories(articles: { category: string }[]): string[] {
+  const set = new Set<string>();
+  for (const a of articles) {
+    const c = (a.category ?? "").trim();
+    if (c) set.add(c);
+  }
+  return Array.from(set).sort((a, b) => a.localeCompare(b));
+}
+
+type Props = { searchParams: Promise<{ category?: string | string[] }> };
+
+function normalizeCategory(param: string | string[] | undefined): string | undefined {
+  if (param == null) return undefined;
+  const value = Array.isArray(param) ? param[0] : param;
+  return typeof value === "string" ? value.trim() : undefined;
+}
+
+export default async function JournalPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const categoryParam = normalizeCategory(params.category);
+  const allArticles = await getArticles();
+  const categories = getUniqueCategories(allArticles);
+  const currentCategory = categoryParam ?? "all";
+  const filtered =
+    !categoryParam || categoryParam === "all"
+      ? allArticles
+      : allArticles.filter(
+          (a) => (a.category ?? "").trim().toLowerCase() === categoryParam.trim().toLowerCase()
+        );
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-10 md:py-14">
-      <h1 className="typo-sectionTitle font-semibold text-foreground mb-10">Journal</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-        {articles.map((article) => (
-          <ArticleCard key={article.id} article={article} />
-        ))}
+      <h1 className="typo-sectionTitle font-semibold text-foreground mb-8">Journal</h1>
+      <JournalCategoryNav
+        categories={categories}
+        currentCategory={currentCategory}
+        basePath="/journal"
+      />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 mt-8">
+        {filtered.length > 0 ? (
+          filtered.map((article) => (
+            <ArticleCard key={article.id} article={article} />
+          ))
+        ) : (
+          <p className="col-span-full typo-body text-[var(--muted)] text-center py-12">
+            暫無文章
+          </p>
+        )}
       </div>
     </div>
   );

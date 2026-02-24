@@ -153,16 +153,24 @@ function mapSanityProductToProduct(p: {
   };
 }
 
+/** 產品列表查詢用型別（含 category 展開） */
+const productListProjection = `{
+  _id, slug, name, nameEn, "category": category->{ _id, slug, name },
+  price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, featured, homepageOrder, stockStatus
+}`;
+
+function categorySlugMatches(productCategory: string, selectedSlug: string): boolean {
+  const a = (productCategory ?? "").trim().toLowerCase();
+  const b = (selectedSlug ?? "").trim().toLowerCase();
+  return a.length > 0 && b.length > 0 && a === b;
+}
+
 export async function getProductsFromSanity(categorySlug?: string): Promise<Product[]> {
   if (!isSanityConfigured()) return [];
   const raw = typeof categorySlug === "string" && categorySlug !== "all" ? categorySlug.trim() : "";
-  const slug = raw || undefined;
-  const filter = slug
-    ? `&& defined(category) && category != null && (
-      (category->slug.current != null && lower(category->slug.current) == lower($categorySlug)) ||
-      (category->name != null && lower(category->name) == lower($categorySlug))
-    )`
-    : "";
+  const selectedSlug = raw || "";
+
+  // 一律先取回全部產品，再在程式中依分類 slug 篩選，避免 GROQ reference/slug 比對差異
   const list = await getClient().fetch<
     Array<{
       _id: string;
@@ -182,46 +190,13 @@ export async function getProductsFromSanity(categorySlug?: string): Promise<Prod
       homepageOrder?: number;
       stockStatus?: string;
     }>
-  >(
-    `*[_type == "product"]${filter} | order(_createdAt asc) {
-      _id, slug, name, nameEn, "category": category->{ _id, slug, name },
-      price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, featured, homepageOrder, stockStatus
-    }`,
-    slug != null ? { categorySlug: slug } : {}
-  );
-  let items = Array.isArray(list) ? list.map(mapSanityProductToProduct) : [];
-  if (slug && items.length === 0) {
-    const all = await getClient().fetch<
-      Array<{
-        _id: string;
-        slug: { current: string };
-        name: string;
-        nameEn?: string;
-        category: { _id: string; slug: { current: string } | null; name?: string } | null;
-        price: number;
-        originalPrice?: number;
-        description: string;
-        descriptionShort?: string;
-        ingredients?: string;
-        sizes?: string[];
-        image?: string | null;
-        buyUrl?: string;
-        featured?: boolean;
-        homepageOrder?: number;
-        stockStatus?: string;
-      }>
-    >(
-      `*[_type == "product"] | order(_createdAt asc) {
-        _id, slug, name, nameEn, "category": category->{ _id, slug, name },
-        price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, featured, homepageOrder, stockStatus
-      }`
-    );
-    const normalized = (slug ?? "").toLowerCase();
-    items = (Array.isArray(all) ? all : [])
-      .map(mapSanityProductToProduct)
-      .filter((p) => (p.category || "").toLowerCase() === normalized || (p.category || "").toLowerCase().trim() === normalized);
-  }
-  return items;
+  >(`*[_type == "product"] | order(order asc, _createdAt asc) ${productListProjection}`);
+
+  const all = Array.isArray(list) ? list.map(mapSanityProductToProduct) : [];
+
+  if (!selectedSlug) return all;
+
+  return all.filter((p) => categorySlugMatches(p.category, selectedSlug));
 }
 
 /** 首頁 Selected Products：只回傳有勾選「首頁精選」的產品，依 homepageOrder 排序 */
@@ -558,7 +533,7 @@ export async function getAboutFromSanity(): Promise<AboutContent | null> {
   if (!isSanityConfigured()) return null;
   const doc = await getClient().fetch<{
     storyTitle?: string;
-    storyContent?: string[];
+    storyContent?: unknown;
     values?: { title: string; description: string }[];
     founderTitle?: string;
     founderName?: string;
@@ -566,9 +541,19 @@ export async function getAboutFromSanity(): Promise<AboutContent | null> {
     founderBio?: string;
   } | null>(`*[_type == "about"][0]`);
   if (!doc) return null;
+  const raw = doc.storyContent;
+  let storyContent: AboutContent["storyContent"] = "";
+  if (Array.isArray(raw) && raw.length > 0) {
+    const first = raw[0];
+    if (typeof first === "object" && first !== null && "_type" in first) {
+      storyContent = raw as PortableTextBlock[];
+    } else {
+      storyContent = (raw as string[]).join("\n\n");
+    }
+  }
   return {
     storyTitle: doc.storyTitle ?? "Our Story",
-    storyContent: doc.storyContent ?? [],
+    storyContent,
     values: doc.values,
     founderTitle: doc.founderTitle,
     founderName: doc.founderName,

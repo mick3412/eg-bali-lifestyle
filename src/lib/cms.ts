@@ -175,7 +175,12 @@ async function getAboutContentUncached(): Promise<AboutContent> {
     const fromSanity = await getAboutFromSanity();
     if (fromSanity) return fromSanity;
   }
-  return localAbout;
+  const about = localAbout as AboutContent & { storyContent?: string[] | AboutContent["storyContent"] };
+  const storyContent: AboutContent["storyContent"] =
+    Array.isArray(about.storyContent) && about.storyContent.every((s): s is string => typeof s === "string")
+      ? about.storyContent.join("\n\n")
+      : (about.storyContent ?? "");
+  return { ...about, storyContent };
 }
 
 export const getAboutContent = cache(getAboutContentUncached);
