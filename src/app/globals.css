@@ -42,3 +42,12 @@ a.text-link {
 .link-arrow::after {
   content: " →";
 }
+
+/* 隱藏捲軸但保留橫向捲動（觸控/滑鼠仍可滑動） */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

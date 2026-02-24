@@ -11,7 +11,7 @@ type Props = {
 export default function ShopCategoryNav({ categories, currentCategory }: Props) {
   return (
     <nav className="border-b border-[var(--border)] pb-4">
-      <div className="flex flex-nowrap gap-2 overflow-x-auto overflow-y-hidden pr-2 -mb-px">
+      <div className="scrollbar-hide flex flex-nowrap gap-2 overflow-x-auto overflow-y-hidden pr-2 -mb-px">
         <Link
           href="/shop"
           className={`typo-sectionLink tracking-widest uppercase px-3 py-1.5 transition-colors whitespace-nowrap shrink-0 ${

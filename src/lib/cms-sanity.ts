@@ -117,7 +117,10 @@ export async function getProductsFromSanity(categorySlug?: string): Promise<Prod
   const raw = typeof categorySlug === "string" && categorySlug !== "all" ? categorySlug.trim() : "";
   const slug = raw || undefined;
   const filter = slug
-    ? `&& defined(category) && category->slug.current != null && lower(category->slug.current) == lower($categorySlug)`
+    ? `&& defined(category) && category != null && (
+      (category->slug.current != null && lower(category->slug.current) == lower($categorySlug)) ||
+      (category->name != null && lower(category->name) == lower($categorySlug))
+    )`
     : "";
   const list = await getClient().fetch<
     Array<{
