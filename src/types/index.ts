@@ -103,6 +103,8 @@ export interface SiteSettings {
   email: string;
   instagramHandle: string;
   instagramUrl: string;
+  /** 首頁 Follow Along 區塊最多 4 個貼文連結（來自 CMS 四個欄位） */
+  instagramPostUrls?: string[];
   copyright: string;
   /** Google Tag (GA4 / Google Ads) ID，例如 G-XXXXXXXXXX 或 AW-XXXXXXXXXX */
   googleTagId?: string;

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
-import { getSiteSettings, getFeaturedProducts, getFeaturedArticles, getInstagramPosts } from "@/lib/cms";
+import { getSiteSettings, getFeaturedProducts, getFeaturedArticles } from "@/lib/cms";
 import ProductCard from "@/components/ProductCard";
 import ArticleCard from "@/components/ArticleCard";
 import HeroBanner from "@/components/HeroBanner";
@@ -9,12 +8,12 @@ import HeroBanner from "@/components/HeroBanner";
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [settings, featuredProducts, featuredArticles, instagramPosts] = await Promise.all([
+  const [settings, featuredProducts, featuredArticles] = await Promise.all([
     getSiteSettings(),
     getFeaturedProducts(8),
     getFeaturedArticles(6),
-    getInstagramPosts(6),
   ]);
+  const instagramPostUrls = (settings.instagramPostUrls ?? []).slice(0, 4);
 
   return (
     <div>
@@ -73,29 +72,26 @@ export default async function HomePage() {
             {settings.instagramHandle} on Instagram
           </a>
         </p>
-        {instagramPosts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {instagramPosts.map((post) => (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[0, 1, 2, 3].map((i) => {
+            const url = instagramPostUrls[i];
+            return url ? (
               <a
-                key={post.id}
-                href={post.link}
+                key={i}
+                href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="aspect-square relative bg-[var(--border)] overflow-hidden group"
+                className="aspect-square relative bg-[var(--border)] overflow-hidden group flex items-center justify-center typo-bodySmall text-[var(--muted)] hover:text-foreground hover:bg-[var(--border)]/80 transition-colors"
               >
-                <Image src={post.imageUrl} alt="" fill className="object-cover group-hover:scale-105 transition-transform" />
+                <span className="px-3 text-center">Instagram 貼文 {i + 1}</span>
               </a>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {[1, 2, 3].map((i) => (
+            ) : (
               <div key={i} className="typo-bodySmall aspect-square bg-[var(--border)] flex items-center justify-center text-[var(--muted)]">
                 Instagram 貼文預留
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </section>
     </div>
   );

@@ -237,6 +237,15 @@ export const siteSettings = defineType({
     defineField({ name: "email", title: "Email", type: "string" }),
     defineField({ name: "instagramHandle", title: "Instagram Handle", type: "string" }),
     defineField({ name: "instagramUrl", title: "Instagram URL", type: "url" }),
+    defineField({
+      name: "instagramPostUrl1",
+      title: "Instagram 貼文 URL 1",
+      type: "url",
+      description: "貼文/短片連結，例如 https://www.instagram.com/p/xxxxxx/ 或 /reel/xxxxxx/",
+    }),
+    defineField({ name: "instagramPostUrl2", title: "Instagram 貼文 URL 2", type: "url" }),
+    defineField({ name: "instagramPostUrl3", title: "Instagram 貼文 URL 3", type: "url" }),
+    defineField({ name: "instagramPostUrl4", title: "Instagram 貼文 URL 4", type: "url" }),
     defineField({ name: "copyright", title: "Copyright", type: "string" }),
     defineField({
       name: "googleTagId",

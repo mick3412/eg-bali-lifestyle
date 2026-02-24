@@ -19,7 +19,12 @@ export default async function ShopPage({ searchParams }: Props) {
   const params = await searchParams;
   const categoryParam = normalizeCategory(params.category)?.trim();
   const categories = await getCategories();
-  const slugByLower = new Map(categories.map((c) => [c.slug.toLowerCase(), c.slug]));
+  const slugByLower = new Map(
+    categories.map((c) => {
+      const s = (c.slug || "").trim();
+      return [s.toLowerCase(), s];
+    })
+  );
   const categorySlug =
     categoryParam === "all" || !categoryParam
       ? "all"

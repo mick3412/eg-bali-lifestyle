@@ -38,13 +38,19 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     email?: string;
     instagramHandle?: string;
     instagramUrl?: string;
+    instagramPostUrl1?: string;
+    instagramPostUrl2?: string;
+    instagramPostUrl3?: string;
+    instagramPostUrl4?: string;
     copyright?: string;
     googleTagId?: string;
     metaPixelId?: string;
     bannerImages?: Array<{ url?: string; link?: string; alt?: string; order?: number }>;
   } | null>(
     `*[_type == "siteSettings"][0] {
-      siteName, tagline, taglineLong, email, instagramHandle, instagramUrl, copyright, googleTagId, metaPixelId,
+      siteName, tagline, taglineLong, email, instagramHandle, instagramUrl,
+      instagramPostUrl1, instagramPostUrl2, instagramPostUrl3, instagramPostUrl4,
+      copyright, googleTagId, metaPixelId,
       "bannerImages": bannerImages[] {
         "url": image.asset->url,
         link,
@@ -59,6 +65,9 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .slice(0, 3)
     .map((b) => ({ url: b.url!, link: b.link, alt: b.alt, order: b.order }));
+  const instagramPostUrls = [doc.instagramPostUrl1, doc.instagramPostUrl2, doc.instagramPostUrl3, doc.instagramPostUrl4]
+    .filter((u): u is string => !!u && typeof u === "string" && u.startsWith("http"))
+    .slice(0, 4);
   return {
     bannerImages: bannerImages.length > 0 ? bannerImages : undefined,
     siteName: doc.siteName ?? "Eg. Bali Lifestyle",
@@ -67,6 +76,7 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     email: doc.email ?? "",
     instagramHandle: doc.instagramHandle ?? "",
     instagramUrl: doc.instagramUrl ?? "",
+    instagramPostUrls: instagramPostUrls.length > 0 ? instagramPostUrls : undefined,
     copyright: doc.copyright ?? "",
     googleTagId: doc.googleTagId && doc.googleTagId.trim() ? doc.googleTagId.trim() : undefined,
     metaPixelId: doc.metaPixelId && doc.metaPixelId.trim() ? doc.metaPixelId.trim() : undefined,
@@ -96,7 +106,7 @@ export async function getCategoriesFromSanity(): Promise<ProductCategoryItem[]> 
     .filter((c) => c.slug?.current)
     .map((c) => ({
       id: c._id,
-      slug: c.slug!.current,
+      slug: (c.slug!.current || "").trim(),
       name: c.name,
       order: c.order,
     }));
