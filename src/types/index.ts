@@ -94,6 +94,11 @@ export interface TypographyStyle {
   fontSize?: string;
 }
 
+export interface InstagramPostSlot {
+  imageUrl: string;
+  link: string;
+}
+
 export interface SiteSettings {
   bannerImages?: BannerImage[];
   siteName: string;
@@ -102,20 +107,13 @@ export interface SiteSettings {
   email: string;
   instagramHandle: string;
   instagramUrl: string;
-  /** 首頁 Follow Along 區塊最多 4 個貼文連結（來自 CMS 四個欄位） */
-  instagramPostUrls?: string[];
+  /** 首頁 Follow Along 區塊使用的 Instagram 貼文（最多 4 則，含縮圖與連結） */
+  instagramPosts?: InstagramPostSlot[];
   copyright: string;
   /** Google Tag (GA4 / Google Ads) ID，例如 G-XXXXXXXXXX 或 AW-XXXXXXXXXX */
   googleTagId?: string;
   /** Meta (Facebook) 像素 ID */
   metaPixelId?: string;
-}
-
-export interface InstagramPost {
-  id: string;
-  imageUrl: string;
-  link: string;
-  order?: number;
 }
 
 /** 全站字體設定（Typography 文件） */

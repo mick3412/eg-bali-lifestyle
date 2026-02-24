@@ -336,14 +336,35 @@ export const siteSettings = defineType({
       description: "點擊帳號文字時導向的官方 IG 連結",
     }),
     defineField({
-      name: "instagramPostUrl1",
-      title: "Instagram 貼文 URL 1",
-      type: "url",
-      description: "貼文/短片連結，例如 https://www.instagram.com/p/xxxxxx/ 或 /reel/xxxxxx/",
+      name: "instagramPosts",
+      title: "Instagram 貼文（最多 4 則）",
+      type: "array",
+      description: "首頁 Follow Along 區塊使用。每一則包含縮圖與貼文連結，最多 4 則，拖曳可調整顯示順序。",
+      validation: (r) => r.max(4),
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "instagramPost",
+          fields: [
+            {
+              name: "image",
+              title: "縮圖",
+              type: "image",
+              description: "建議使用 1:1 方形圖片，會顯示在首頁 Instagram 區塊。",
+              options: { hotspot: true },
+              validation: (r) => r.required(),
+            },
+            {
+              name: "url",
+              title: "貼文連結",
+              type: "url",
+              description: "Instagram 貼文或短片網址，例如：https://www.instagram.com/p/xxxxxx/ 或 /reel/xxxxxx/",
+              validation: (r) => r.required(),
+            },
+          ],
+        }),
+      ],
     }),
-    defineField({ name: "instagramPostUrl2", title: "Instagram 貼文 URL 2", type: "url" }),
-    defineField({ name: "instagramPostUrl3", title: "Instagram 貼文 URL 3", type: "url" }),
-    defineField({ name: "instagramPostUrl4", title: "Instagram 貼文 URL 4", type: "url" }),
     defineField({
       name: "copyright",
       title: "版權文字",
@@ -406,28 +427,4 @@ export const typographySettings = defineType({
   ],
 });
 
-export const instagramPost = defineType({
-  name: "instagramPost",
-  title: "Instagram 貼文（清單）",
-  type: "document",
-  fields: [
-    defineField({
-      name: "imageUrl",
-      title: "圖片網址",
-      type: "url",
-      description: "Instagram 貼文縮圖或圖片的完整 URL（若使用）",
-    }),
-    defineField({
-      name: "link",
-      title: "貼文連結",
-      type: "url",
-      description: "Instagram 貼文或短片的網址",
-    }),
-    defineField({
-      name: "order",
-      title: "顯示順序",
-      type: "number",
-      description: "數字愈小愈前面顯示",
-    }),
-  ],
-});
+// 2026-02：原本獨立的 instagramPost 文件類型已改為在 Site Settings 中維護貼文清單，故不再需要額外文件。

@@ -3,7 +3,7 @@
  * 使用 React cache() 在同一 request 內去重，避免 layout 與 page 重複請求
  */
 import { cache } from "react";
-import type { Product, Article, AboutContent, SiteSettings, InstagramPost, ProductCategoryItem, TypographySettings } from "@/types";
+import type { Product, Article, AboutContent, SiteSettings, ProductCategoryItem, TypographySettings } from "@/types";
 import { isSanityConfigured } from "./sanity";
 import {
   getSiteSettingsFromSanity,
@@ -17,7 +17,6 @@ import {
   getArticleBySlugFromSanity,
   getAboutFromSanity,
   getRelatedProductsFromSanity,
-  getInstagramPostsFromSanity,
 } from "./cms-sanity";
 
 import settingsData from "@/content/settings.json";
@@ -181,10 +180,4 @@ async function getAboutContentUncached(): Promise<AboutContent> {
 
 export const getAboutContent = cache(getAboutContentUncached);
 
-export async function getInstagramPosts(limit = 6): Promise<InstagramPost[]> {
-  if (isSanityConfigured()) {
-    const list = await getInstagramPostsFromSanity(limit);
-    if (list.length > 0) return list;
-  }
-  return [];
-}
+// Instagram 貼文改由 Site Settings 的 instagramPosts 管理，故不再提供獨立列表 API。

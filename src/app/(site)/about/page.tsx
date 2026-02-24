@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getAboutContent, getSiteSettings } from "@/lib/cms";
 
 export const metadata = {
@@ -43,13 +44,31 @@ export default async function AboutPage() {
         <p className="typo-bodySmall text-[var(--muted)] mb-2">
           {settings.tagline}. {settings.taglineLong}
         </p>
-        {about.founderTitle && (
-          <p className="typo-caption tracking-widest uppercase text-[var(--muted)] mt-4">
-            {about.founderTitle}
-          </p>
-        )}
-        {about.founderBio && (
-          <p className="typo-bodySmall text-[var(--muted)] mt-1">{about.founderBio}</p>
+        {(about.founderTitle || about.founderName || about.founderImage || about.founderBio) && (
+          <div className="mt-8">
+            {about.founderImage && about.founderImage.startsWith("http") && (
+              <div className="aspect-square max-w-[280px] relative rounded-full overflow-hidden mb-4">
+                <Image
+                  src={about.founderImage}
+                  alt={about.founderName ?? "創辦人"}
+                  fill
+                  className="object-cover"
+                  sizes="280px"
+                />
+              </div>
+            )}
+            {about.founderTitle && (
+              <p className="typo-caption tracking-widest uppercase text-[var(--muted)]">
+                {about.founderTitle}
+              </p>
+            )}
+            {about.founderName && (
+              <p className="typo-sectionTitle font-semibold text-foreground mt-1">{about.founderName}</p>
+            )}
+            {about.founderBio && (
+              <p className="typo-bodySmall text-[var(--muted)] mt-2">{about.founderBio}</p>
+            )}
+          </div>
         )}
       </section>
     </div>

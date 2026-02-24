@@ -14,8 +14,9 @@ export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return { title: "Product — Eg. Bali Lifestyle" };
+  const displayName = (product.name?.trim() || product.nameEn) ?? product.name ?? "";
   return {
-    title: `${product.nameEn ?? product.name} — Eg. Bali Lifestyle`,
+    title: `${displayName} — Eg. Bali Lifestyle`,
     description: product.descriptionShort ?? product.description,
   };
 }
@@ -42,17 +43,17 @@ export default async function ProductPage({ params }: Props) {
         <span className="mx-1">/</span>
         <Link href="/shop" className="hover:text-foreground">Shop</Link>
         <span className="mx-1">/</span>
-        <span className="text-foreground">{product.nameEn ?? product.name}</span>
+        <span className="text-foreground">{(product.name?.trim() || product.nameEn) ?? product.name}</span>
       </nav>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
-        <ProductGallery items={galleryItems} alt={product.name} />
+        <ProductGallery items={galleryItems} alt={(product.name?.trim() || product.nameEn) ?? product.name ?? ""} />
         <div>
           <p className="typo-caption tracking-widest uppercase text-[var(--muted)] mb-1">
             {categoryName}
           </p>
           <h1 className="typo-sectionTitle font-semibold text-foreground mb-3">
-            {product.nameEn ?? product.name}
+            {(product.name?.trim() || product.nameEn) ?? product.name}
           </h1>
           <p className="typo-body text-[var(--muted)] leading-relaxed mb-6">
             {product.description}

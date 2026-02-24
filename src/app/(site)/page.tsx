@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getSiteSettings, getFeaturedProducts, getFeaturedArticles } from "@/lib/cms";
 import ProductCard from "@/components/ProductCard";
 import ArticleCard from "@/components/ArticleCard";
@@ -13,7 +14,7 @@ export default async function HomePage() {
     getFeaturedProducts(8),
     getFeaturedArticles(6),
   ]);
-  const instagramPostUrls = (settings.instagramPostUrls ?? []).slice(0, 4);
+  const instagramPosts = (settings.instagramPosts ?? []).slice(0, 4);
 
   return (
     <div>
@@ -74,19 +75,28 @@ export default async function HomePage() {
         </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[0, 1, 2, 3].map((i) => {
-            const url = instagramPostUrls[i];
-            return url ? (
+            const post = instagramPosts[i];
+            return post ? (
               <a
                 key={i}
-                href={url}
+                href={post.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="aspect-square relative bg-[var(--border)] overflow-hidden group flex items-center justify-center typo-bodySmall text-[var(--muted)] hover:text-foreground hover:bg-[var(--border)]/80 transition-colors"
+                className="aspect-square relative bg-[var(--border)] overflow-hidden group"
               >
-                <span className="px-3 text-center">Instagram 貼文 {i + 1}</span>
+                <Image
+                  src={post.imageUrl}
+                  alt=""
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
               </a>
             ) : (
-              <div key={i} className="typo-bodySmall aspect-square bg-[var(--border)] flex items-center justify-center text-[var(--muted)]">
+              <div
+                key={i}
+                className="typo-bodySmall aspect-square bg-[var(--border)] flex items-center justify-center text-[var(--muted)]"
+              >
                 Instagram 貼文預留
               </div>
             );

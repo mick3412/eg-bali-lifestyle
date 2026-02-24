@@ -3,7 +3,7 @@
  * 當 NEXT_PUBLIC_SANITY_PROJECT_ID 已設定時，cms.ts 會改用此模組的資料
  */
 import { client, isSanityConfigured } from "./sanity";
-import type { Product, Article, AboutContent, SiteSettings, InstagramPost, ProductCategoryItem, PortableTextBlock, TypographySettings } from "@/types";
+import type { Product, Article, AboutContent, SiteSettings, ProductCategoryItem, PortableTextBlock, TypographySettings } from "@/types";
 import imageUrlBuilder from "@sanity/image-url";
 
 const getClient = () => (client ?? (null as never));
@@ -38,10 +38,7 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     email?: string;
     instagramHandle?: string;
     instagramUrl?: string;
-    instagramPostUrl1?: string;
-    instagramPostUrl2?: string;
-    instagramPostUrl3?: string;
-    instagramPostUrl4?: string;
+    instagramPosts?: Array<{ imageUrl?: string | null; url?: string | null }>;
     copyright?: string;
     googleTagId?: string;
     metaPixelId?: string;
@@ -49,7 +46,10 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
   } | null>(
     `*[_type == "siteSettings"][0] {
       siteName, tagline, taglineLong, email, instagramHandle, instagramUrl,
-      instagramPostUrl1, instagramPostUrl2, instagramPostUrl3, instagramPostUrl4,
+      "instagramPosts": instagramPosts[] {
+        "imageUrl": image.asset->url,
+        url
+      },
       copyright, googleTagId, metaPixelId,
       "bannerImages": bannerImages[] {
         "url": image.asset->url,
@@ -65,9 +65,11 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .slice(0, 3)
     .map((b) => ({ url: b.url!, link: b.link, alt: b.alt, order: b.order }));
-  const instagramPostUrls = [doc.instagramPostUrl1, doc.instagramPostUrl2, doc.instagramPostUrl3, doc.instagramPostUrl4]
-    .filter((u): u is string => !!u && typeof u === "string" && u.startsWith("http"))
-    .slice(0, 4);
+  const instagramPosts =
+    (doc.instagramPosts ?? [])
+      .filter((p): p is { imageUrl: string; url: string } => !!p.imageUrl && !!p.url && p.imageUrl.startsWith("http") && p.url.startsWith("http"))
+      .slice(0, 4)
+      .map((p) => ({ imageUrl: p.imageUrl, link: p.url }));
   return {
     bannerImages: bannerImages.length > 0 ? bannerImages : undefined,
     siteName: doc.siteName ?? "Eg. Bali Lifestyle",
@@ -76,7 +78,7 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     email: doc.email ?? "",
     instagramHandle: doc.instagramHandle ?? "",
     instagramUrl: doc.instagramUrl ?? "",
-    instagramPostUrls: instagramPostUrls.length > 0 ? instagramPostUrls : undefined,
+    instagramPosts: instagramPosts.length > 0 ? instagramPosts : undefined,
     copyright: doc.copyright ?? "",
     googleTagId: doc.googleTagId && doc.googleTagId.trim() ? doc.googleTagId.trim() : undefined,
     metaPixelId: doc.metaPixelId && doc.metaPixelId.trim() ? doc.metaPixelId.trim() : undefined,
@@ -110,6 +112,45 @@ export async function getCategoriesFromSanity(): Promise<ProductCategoryItem[]> 
       name: c.name,
       order: c.order,
     }));
+}
+
+function mapSanityProductToProduct(p: {
+  _id: string;
+  slug: { current: string };
+  name: string;
+  nameEn?: string;
+  category: { _id: string; slug: { current: string } | null; name?: string } | null;
+  price: number;
+  originalPrice?: number;
+  description: string;
+  descriptionShort?: string;
+  ingredients?: string;
+  sizes?: string[];
+  image?: string | null;
+  buyUrl?: string;
+  featured?: boolean;
+  homepageOrder?: number;
+  stockStatus?: string;
+}): Product {
+  const categorySlug = (p.category?.slug?.current ?? "").trim();
+  return {
+    id: p._id,
+    slug: p.slug?.current ?? p._id,
+    name: p.name,
+    nameEn: p.nameEn,
+    category: categorySlug,
+    price: p.price,
+    originalPrice: p.originalPrice,
+    description: p.description,
+    descriptionShort: p.descriptionShort,
+    ingredients: p.ingredients,
+    sizes: p.sizes,
+    image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
+    buyUrl: p.buyUrl,
+    featured: p.featured,
+    homepageOrder: p.homepageOrder,
+    stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,
+  };
 }
 
 export async function getProductsFromSanity(categorySlug?: string): Promise<Product[]> {
@@ -148,25 +189,39 @@ export async function getProductsFromSanity(categorySlug?: string): Promise<Prod
     }`,
     slug != null ? { categorySlug: slug } : {}
   );
-  const items = Array.isArray(list) ? list : [];
-  return items.map((p) => ({
-    id: p._id,
-    slug: p.slug?.current ?? p._id,
-    name: p.name,
-    nameEn: p.nameEn,
-    category: p.category?.slug?.current ?? "",
-    price: p.price,
-    originalPrice: p.originalPrice,
-    description: p.description,
-    descriptionShort: p.descriptionShort,
-    ingredients: p.ingredients,
-    sizes: p.sizes,
-    image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
-    buyUrl: p.buyUrl,
-    featured: p.featured,
-    homepageOrder: p.homepageOrder,
-    stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,
-  }));
+  let items = Array.isArray(list) ? list.map(mapSanityProductToProduct) : [];
+  if (slug && items.length === 0) {
+    const all = await getClient().fetch<
+      Array<{
+        _id: string;
+        slug: { current: string };
+        name: string;
+        nameEn?: string;
+        category: { _id: string; slug: { current: string } | null; name?: string } | null;
+        price: number;
+        originalPrice?: number;
+        description: string;
+        descriptionShort?: string;
+        ingredients?: string;
+        sizes?: string[];
+        image?: string | null;
+        buyUrl?: string;
+        featured?: boolean;
+        homepageOrder?: number;
+        stockStatus?: string;
+      }>
+    >(
+      `*[_type == "product"] | order(_createdAt asc) {
+        _id, slug, name, nameEn, "category": category->{ _id, slug, name },
+        price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, featured, homepageOrder, stockStatus
+      }`
+    );
+    const normalized = (slug ?? "").toLowerCase();
+    items = (Array.isArray(all) ? all : [])
+      .map(mapSanityProductToProduct)
+      .filter((p) => (p.category || "").toLowerCase() === normalized || (p.category || "").toLowerCase().trim() === normalized);
+  }
+  return items;
 }
 
 /** 首頁 Selected Products：只回傳有勾選「首頁精選」的產品，依 homepageOrder 排序 */
@@ -522,15 +577,4 @@ export async function getAboutFromSanity(): Promise<AboutContent | null> {
   };
 }
 
-export async function getInstagramPostsFromSanity(limit = 6): Promise<InstagramPost[]> {
-  if (!isSanityConfigured()) return [];
-  const list = await getClient().fetch<
-    Array<{ _id: string; imageUrl: string; link: string; order?: number }>
-  >(`*[_type == "instagramPost"] | order(order asc) [0...${limit}] { _id, imageUrl, link, order }`);
-  return list.map((p) => ({
-    id: p._id,
-    imageUrl: p.imageUrl,
-    link: p.link,
-    order: p.order,
-  }));
-}
+// 2026-02：Instagram 貼文改為由 Site Settings 的 instagramPosts 欄位管理，原本的 instagramPost 文件與此函式已不再使用。
