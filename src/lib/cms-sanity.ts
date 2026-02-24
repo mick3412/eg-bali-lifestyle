@@ -119,7 +119,7 @@ function mapSanityProductToProduct(p: {
   slug: { current: string };
   name: string;
   nameEn?: string;
-  category: { _id: string; slug: { current: string } | null; name?: string } | null;
+  category: { _id?: string; slug: { current: string } | null; name?: string } | null;
   price: number;
   originalPrice?: number;
   description: string;
@@ -437,46 +437,6 @@ function mapArticleFromSanity(
     featured: a.featured,
     homepageOrder: a.homepageOrder,
     relatedProducts,
-  };
-}
-
-function mapSanityProductToProduct(p: {
-  _id: string;
-  slug: { current: string };
-  name: string;
-  nameEn?: string;
-  category: { slug: { current: string } | null } | null;
-  price: number;
-  originalPrice?: number;
-  description: string;
-  descriptionShort?: string;
-  ingredients?: string;
-  sizes?: string[];
-  image?: string | null;
-  buyUrl?: string;
-  order?: number;
-  featured?: boolean;
-  homepageOrder?: number;
-  stockStatus?: string;
-}): Product {
-  return {
-    id: p._id,
-    slug: p.slug?.current ?? p._id,
-    name: p.name,
-    nameEn: p.nameEn,
-    category: p.category?.slug?.current ?? "",
-    price: p.price,
-    originalPrice: p.originalPrice,
-    description: p.description,
-    descriptionShort: p.descriptionShort,
-    ingredients: p.ingredients,
-    sizes: p.sizes,
-    image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
-    buyUrl: p.buyUrl,
-    order: p.order,
-    featured: p.featured,
-    homepageOrder: p.homepageOrder,
-    stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,
   };
 }
 

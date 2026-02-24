@@ -28,7 +28,7 @@ import categoriesData from "@/content/categories.json";
 const localSettings = settingsData as SiteSettings;
 const localProducts = productsData as Product[];
 const localArticles = articlesData as Article[];
-const localAbout = aboutData as AboutContent;
+const localAbout = aboutData as unknown as AboutContent;
 const localCategories = categoriesData as ProductCategoryItem[];
 
 async function getSiteSettingsUncached(): Promise<SiteSettings> {
@@ -176,10 +176,11 @@ async function getAboutContentUncached(): Promise<AboutContent> {
     if (fromSanity) return fromSanity;
   }
   const about = localAbout as AboutContent & { storyContent?: string[] | AboutContent["storyContent"] };
+  const raw = about.storyContent;
   const storyContent: AboutContent["storyContent"] =
-    Array.isArray(about.storyContent) && about.storyContent.every((s): s is string => typeof s === "string")
-      ? about.storyContent.join("\n\n")
-      : (about.storyContent ?? "");
+    Array.isArray(raw) && raw.length > 0 && typeof raw[0] === "string"
+      ? (raw as string[]).join("\n\n")
+      : (raw ?? "");
   return { ...about, storyContent };
 }
 
