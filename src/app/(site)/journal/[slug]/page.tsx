@@ -2,6 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getArticleBySlug, getArticlePrevNext } from "@/lib/cms";
+import ArticleContent from "@/components/ArticleContent";
+import ProductCard from "@/components/ProductCard";
 
 function formatDate(s: string) {
   return new Date(s).toLocaleDateString("zh-TW", { year: "numeric", month: "long", day: "numeric" });
@@ -51,13 +53,18 @@ export default async function ArticlePage({ params }: Props) {
       <h1 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-2">{article.title}</h1>
       <p className="text-sm text-[var(--muted)] mb-8">{formatDate(article.publishedAt)}</p>
 
-      <div className="prose prose-neutral max-w-none text-foreground">
-        {article.content.split("\n\n").map((para, i) => (
-          <p key={i} className="mb-4 text-[var(--foreground)] leading-relaxed">
-            {para}
-          </p>
-        ))}
-      </div>
+      <ArticleContent content={article.content} />
+
+      {article.relatedProducts && article.relatedProducts.length > 0 && (
+        <section className="mt-12 pt-10 border-t border-[var(--border)]">
+          <h2 className="font-serif text-xl font-semibold text-foreground mb-6">相關產品</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {article.relatedProducts.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <nav className="mt-12 pt-8 border-t border-[var(--border)] flex flex-col sm:flex-row justify-between gap-4">
         {prev ? (

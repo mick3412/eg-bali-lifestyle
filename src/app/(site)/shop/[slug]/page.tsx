@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getProductBySlug, getRelatedProducts, CATEGORY_LABELS } from "@/lib/cms";
+import { getProductBySlug, getRelatedProducts, getCategoryName } from "@/lib/cms";
 import ProductCard from "@/components/ProductCard";
 
 function formatPrice(n: number) {
@@ -25,7 +25,10 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const related = await getRelatedProducts(product, 4);
+  const [related, categoryName] = await Promise.all([
+    getRelatedProducts(product, 4),
+    getCategoryName(product.category),
+  ]);
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-10 md:py-14">
@@ -50,7 +53,7 @@ export default async function ProductPage({ params }: Props) {
         </div>
         <div>
           <p className="text-xs tracking-widest uppercase text-[var(--muted)] mb-1">
-            {CATEGORY_LABELS[product.category]}
+            {categoryName}
           </p>
           <h1 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-3">
             {product.nameEn ?? product.name}
@@ -63,6 +66,13 @@ export default async function ProductPage({ params }: Props) {
               </span>
             )}
           </p>
+          {product.stockStatus && (
+            <p className="text-xs tracking-widest uppercase text-[var(--muted)] mb-3">
+              {product.stockStatus === "in_stock" && "有庫存"}
+              {product.stockStatus === "out_of_stock" && "暫無庫存"}
+              {product.stockStatus === "preorder" && "可預訂"}
+            </p>
+          )}
           <p className="text-sm text-[var(--muted)] leading-relaxed mb-6">
             {product.description}
           </p>

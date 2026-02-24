@@ -1,0 +1,6 @@
+[
+  { "id": "skincare", "slug": "skincare", "name": "Skincare", "order": 1 },
+  { "id": "body-care", "slug": "body-care", "name": "Body Care", "order": 2 },
+  { "id": "fragrance", "slug": "fragrance", "name": "Fragrance", "order": 3 },
+  { "id": "home", "slug": "home", "name": "Home", "order": 4 }
+]

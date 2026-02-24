@@ -13,7 +13,10 @@
     "sizes": ["200ml"],
     "image": "/images/placeholder.svg",
     "buyUrl": "https://example.com/buy/1",
-    "order": 1
+    "order": 1,
+    "featured": true,
+    "homepageOrder": 1,
+    "stockStatus": "in_stock"
   },
   {
     "id": "2",
@@ -26,7 +29,9 @@
     "descriptionShort": "深層滋養，溫和配方。",
     "image": "/images/placeholder.svg",
     "buyUrl": "https://example.com/buy/2",
-    "order": 2
+    "order": 2,
+    "featured": true,
+    "homepageOrder": 2
   },
   {
     "id": "3",
@@ -38,7 +43,9 @@
     "description": "純植物配方香皂，溫和潔淨，留香自然。",
     "image": "/images/placeholder.svg",
     "buyUrl": "https://example.com/buy/3",
-    "order": 3
+    "order": 3,
+    "featured": true,
+    "homepageOrder": 3
   },
   {
     "id": "4",
@@ -51,7 +58,9 @@
     "description": "精選天然精油調和，可用於擴香、按摩或泡澡。",
     "image": "/images/placeholder.svg",
     "buyUrl": "https://example.com/buy/4",
-    "order": 4
+    "order": 4,
+    "featured": true,
+    "homepageOrder": 4
   },
   {
     "id": "5",

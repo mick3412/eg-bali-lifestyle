@@ -8,7 +8,9 @@
     "content": "Morning rituals are more than habits—they are gentle ways to align body and mind before the day begins. From a few minutes of stillness to a mindful cup of tea, these small acts can transform how we experience our mornings and set intention for the hours ahead.\n\nWe believe in fewer, better things: a simple routine that doesn’t demand perfection, just presence. Whether it’s applying a favourite cream, lighting a candle, or simply sitting by the window with a warm drink, the art lies in doing it with attention.\n\nStart small. Choose one ritual that feels true to you and give it your full focus. Over time, it becomes a quiet anchor that carries you through the day.",
     "image": "/images/placeholder.svg",
     "publishedAt": "2026-02-15",
-    "order": 1
+    "order": 1,
+    "featured": true,
+    "homepageOrder": 1
   },
   {
     "id": "2",
@@ -19,7 +21,9 @@
     "content": "Every product we offer is born in a workshop or atelier where skill and intention meet. We work with artisans who use techniques passed down through generations, from ceramicists who shape our bottles to weavers who create the textiles that wrap our goods.\n\nVisiting these spaces, we see the same values we hold: care for materials, respect for process, and a belief that beauty and function belong together. This article is a glimpse into a few of those places and the hands that make our products possible.",
     "image": "/images/placeholder.svg",
     "publishedAt": "2026-02-01",
-    "order": 2
+    "order": 2,
+    "featured": true,
+    "homepageOrder": 2
   },
   {
     "id": "3",
@@ -30,6 +34,8 @@
     "content": "Nature’s calendar offers different plants for each season—each with its own gifts. In this piece we explore how seasonal herbs and botanicals can support wellness through the year: from spring’s cleansing greens to autumn’s grounding roots.\n\nWe share simple ways to bring these plants into your daily life, whether in teas, oils, or rituals. The goal is not complexity, but connection—to the land, the season, and your own rhythm.",
     "image": "/images/placeholder.svg",
     "publishedAt": "2026-01-20",
-    "order": 3
+    "order": 3,
+    "featured": true,
+    "homepageOrder": 3
   }
 ]

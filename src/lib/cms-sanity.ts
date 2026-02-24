@@ -3,16 +3,28 @@
  * 當 NEXT_PUBLIC_SANITY_PROJECT_ID 已設定時，cms.ts 會改用此模組的資料
  */
 import { client, isSanityConfigured } from "./sanity";
-import type { Product, Article, AboutContent, SiteSettings, InstagramPost, ProductCategory } from "@/types";
+import type { Product, Article, AboutContent, SiteSettings, InstagramPost, ProductCategoryItem, PortableTextBlock } from "@/types";
 import imageUrlBuilder from "@sanity/image-url";
 
 const getClient = () => (client ?? (null as never));
 
-function urlFor(source: { _type?: string; asset?: { _ref: string } } | string): string {
+function urlFor(source: { _type?: string; asset?: { _ref: string; _id?: string } } | string | undefined): string {
   if (typeof source === "string") return source;
-  if (!client) return "/images/placeholder.svg";
-  return imageUrlBuilder(client).image({ ...source, _type: source._type ?? "image" }).auto("format").url();
+  if (!source || !client) return "/images/placeholder.svg";
+  const img = { ...source, _type: source._type ?? "image" };
+  const ref = source.asset?._ref ?? (source.asset as { _id?: string })?._id;
+  if (ref) (img as { asset?: { _ref: string } }).asset = { _ref: ref };
+  try {
+    const url = imageUrlBuilder(client).image(img).auto("format").url();
+    return url && url.startsWith("http") ? url : "/images/placeholder.svg";
+  } catch {
+    return "/images/placeholder.svg";
+  }
 }
+
+/** 從 GROQ 取得圖片 URL（展開 asset->url 最穩定，避免前端破圖） */
+const productImageProjection = '"image": image.asset->url';
+const articleImageProjection = '"image": image.asset->url';
 
 export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> {
   if (!isSanityConfigured()) return null;
@@ -31,44 +43,121 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
   };
 }
 
-export async function getProductsFromSanity(category?: ProductCategory): Promise<Product[]> {
+/** 取得產品分類列表（Studio 可新增/編輯） */
+export async function getCategoriesFromSanity(): Promise<ProductCategoryItem[]> {
   if (!isSanityConfigured()) return [];
-  const filter = category && category !== "all" ? `&& category == $category` : "";
+  const list = await getClient().fetch<
+    Array<{ _id: string; slug: { current: string } | null; name: string; order?: number }>
+  >(`*[_type == "productCategory"] | order(order asc) { _id, slug, name, order }`);
+  return list
+    .filter((c) => c.slug?.current)
+    .map((c) => ({
+      id: c._id,
+      slug: c.slug!.current,
+      name: c.name,
+      order: c.order,
+    }));
+}
+
+export async function getProductsFromSanity(categorySlug?: string): Promise<Product[]> {
+  if (!isSanityConfigured()) return [];
+  const filter = categorySlug && categorySlug !== "all" ? `&& category->slug.current == $categorySlug` : "";
   const list = await getClient().fetch<
     Array<{
       _id: string;
       slug: { current: string };
       name: string;
       nameEn?: string;
-      category: string;
+      category: { _id: string; slug: { current: string } | null; name?: string } | null;
       price: number;
       originalPrice?: number;
       description: string;
       descriptionShort?: string;
       ingredients?: string;
       sizes?: string[];
-      image?: { asset?: { _ref: string } };
+      image?: string | null;
       buyUrl?: string;
       order?: number;
+      featured?: boolean;
+      homepageOrder?: number;
+      stockStatus?: string;
     }>
-  >(`*[_type == "product"]${filter} | order(order asc) { _id, slug, name, nameEn, category, price, originalPrice, description, descriptionShort, ingredients, sizes, image, buyUrl, order }`, {
-    category,
-  });
+  >(
+    `*[_type == "product"]${filter} | order(order asc) {
+      _id, slug, name, nameEn, "category": category->{ _id, slug, name },
+      price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, order, featured, homepageOrder, stockStatus
+    }`,
+    { categorySlug }
+  );
   return list.map((p) => ({
     id: p._id,
     slug: p.slug?.current ?? p._id,
     name: p.name,
     nameEn: p.nameEn,
-    category: p.category as ProductCategory,
+    category: p.category?.slug?.current ?? "",
     price: p.price,
     originalPrice: p.originalPrice,
     description: p.description,
     descriptionShort: p.descriptionShort,
     ingredients: p.ingredients,
     sizes: p.sizes,
-    image: p.image ? urlFor({ ...p.image, _type: "image" }) : "/images/placeholder.svg",
+    image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
     buyUrl: p.buyUrl,
     order: p.order,
+    featured: p.featured,
+    homepageOrder: p.homepageOrder,
+    stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,
+  }));
+}
+
+/** 首頁 Selected Products：只回傳有勾選「首頁精選」的產品，依 homepageOrder 排序 */
+export async function getFeaturedProductsFromSanity(limit = 8): Promise<Product[]> {
+  if (!isSanityConfigured()) return [];
+  const list = await getClient().fetch<
+    Array<{
+      _id: string;
+      slug: { current: string };
+      name: string;
+      nameEn?: string;
+      category: { slug: { current: string } | null } | null;
+      price: number;
+      originalPrice?: number;
+      description: string;
+      descriptionShort?: string;
+      ingredients?: string;
+      sizes?: string[];
+      image?: string | null;
+      buyUrl?: string;
+      order?: number;
+      featured?: boolean;
+      homepageOrder?: number;
+      stockStatus?: string;
+    }>
+  >(
+    `*[_type == "product" && featured == true] | order(homepageOrder asc, order asc) [0...$limit] {
+      _id, slug, name, nameEn, "category": category->{ "slug": slug },
+      price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, order, featured, homepageOrder, stockStatus
+    }`,
+    { limit }
+  );
+  return list.map((p) => ({
+    id: p._id,
+    slug: p.slug?.current ?? p._id,
+    name: p.name,
+    nameEn: p.nameEn,
+    category: p.category?.slug?.current ?? "",
+    price: p.price,
+    originalPrice: p.originalPrice,
+    description: p.description,
+    descriptionShort: p.descriptionShort,
+    ingredients: p.ingredients,
+    sizes: p.sizes,
+    image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
+    buyUrl: p.buyUrl,
+    order: p.order,
+    featured: p.featured,
+    homepageOrder: p.homepageOrder,
+    stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,
   }));
 }
 
@@ -80,35 +169,69 @@ export async function getProductBySlugFromSanity(slug: string): Promise<Product 
       slug: { current: string };
       name: string;
       nameEn?: string;
-      category: string;
+      category: { slug: { current: string } | null } | null;
       price: number;
       originalPrice?: number;
       description: string;
       descriptionShort?: string;
       ingredients?: string;
       sizes?: string[];
-      image?: { asset?: { _ref: string } };
+      image?: string | null;
       buyUrl?: string;
       order?: number;
+      featured?: boolean;
+      homepageOrder?: number;
+      stockStatus?: string;
     } | null
-  >(`*[_type == "product" && slug.current == $slug][0]`, { slug });
+  >(`*[_type == "product" && slug.current == $slug][0]{ _id, slug, name, nameEn, "category": category->{ "slug": slug }, price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, order, featured, homepageOrder, stockStatus }`, {
+    slug,
+  });
   if (!p) return null;
   return {
     id: p._id,
     slug: p.slug?.current ?? p._id,
     name: p.name,
     nameEn: p.nameEn,
-    category: p.category as ProductCategory,
+    category: p.category?.slug?.current ?? "",
     price: p.price,
     originalPrice: p.originalPrice,
     description: p.description,
     descriptionShort: p.descriptionShort,
     ingredients: p.ingredients,
     sizes: p.sizes,
-    image: p.image ? urlFor({ ...p.image, _type: "image" }) : "/images/placeholder.svg",
+    image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
     buyUrl: p.buyUrl,
     order: p.order,
+    featured: p.featured,
+    homepageOrder: p.homepageOrder,
+    stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,
   };
+}
+
+/** 首頁 From the Journal：只回傳有勾選精選的文章 */
+export async function getFeaturedArticlesFromSanity(limit = 6): Promise<Article[]> {
+  if (!isSanityConfigured()) return [];
+  const list = await getClient().fetch<
+    Array<{
+      _id: string;
+      slug: { current: string };
+      title: string;
+      category: string;
+      excerpt: string;
+      content: unknown;
+      image?: string | null;
+      publishedAt: string;
+      order?: number;
+      featured?: boolean;
+      homepageOrder?: number;
+    }>
+  >(
+    `*[_type == "article" && featured == true] | order(homepageOrder asc, publishedAt desc) [0...$limit] {
+      _id, slug, title, category, excerpt, content, ${articleImageProjection}, publishedAt, order, featured, homepageOrder
+    }`,
+    { limit }
+  );
+  return list.map((a) => mapArticleFromSanity(a, undefined));
 }
 
 export async function getArticlesFromSanity(limit?: number): Promise<Article[]> {
@@ -120,24 +243,89 @@ export async function getArticlesFromSanity(limit?: number): Promise<Article[]> 
       title: string;
       category: string;
       excerpt: string;
-      content: string;
-      image?: { asset?: { _ref: string } };
+      content: unknown;
+      image?: string | null;
       publishedAt: string;
       order?: number;
+      featured?: boolean;
+      homepageOrder?: number;
     }>
-  >(`*[_type == "article"] | order(publishedAt desc) { _id, slug, title, category, excerpt, content, image, publishedAt, order }`);
-  const mapped = list.map((a) => ({
+  >(`*[_type == "article"] | order(publishedAt desc) { _id, slug, title, category, excerpt, content, ${articleImageProjection}, publishedAt, order, featured, homepageOrder }`);
+  const mapped = list.map((a) => mapArticleFromSanity(a, undefined));
+  return limit ? mapped.slice(0, limit) : mapped;
+}
+
+function mapArticleFromSanity(
+  a: {
+    _id: string;
+    slug: { current: string };
+    title: string;
+    category: string;
+    excerpt: string;
+    content: unknown;
+    image?: string | null;
+    publishedAt: string;
+    order?: number;
+    featured?: boolean;
+    homepageOrder?: number;
+  },
+  relatedProducts?: Product[]
+): Article {
+  const content: Article["content"] = Array.isArray(a.content) ? (a.content as PortableTextBlock[]) : (a.content as string) ?? "";
+  return {
     id: a._id,
     slug: a.slug?.current ?? a._id,
     title: a.title,
     category: a.category,
     excerpt: a.excerpt,
-    content: a.content,
-    image: a.image ? urlFor({ ...a.image, _type: "image" }) : "/images/placeholder.svg",
+    content,
+    image: a.image && a.image.startsWith("http") ? a.image : "/images/placeholder.svg",
     publishedAt: a.publishedAt,
     order: a.order,
-  }));
-  return limit ? mapped.slice(0, limit) : mapped;
+    featured: a.featured,
+    homepageOrder: a.homepageOrder,
+    relatedProducts,
+  };
+}
+
+function mapSanityProductToProduct(p: {
+  _id: string;
+  slug: { current: string };
+  name: string;
+  nameEn?: string;
+  category: { slug: { current: string } | null } | null;
+  price: number;
+  originalPrice?: number;
+  description: string;
+  descriptionShort?: string;
+  ingredients?: string;
+  sizes?: string[];
+  image?: string | null;
+  buyUrl?: string;
+  order?: number;
+  featured?: boolean;
+  homepageOrder?: number;
+  stockStatus?: string;
+}): Product {
+  return {
+    id: p._id,
+    slug: p.slug?.current ?? p._id,
+    name: p.name,
+    nameEn: p.nameEn,
+    category: p.category?.slug?.current ?? "",
+    price: p.price,
+    originalPrice: p.originalPrice,
+    description: p.description,
+    descriptionShort: p.descriptionShort,
+    ingredients: p.ingredients,
+    sizes: p.sizes,
+    image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
+    buyUrl: p.buyUrl,
+    order: p.order,
+    featured: p.featured,
+    homepageOrder: p.homepageOrder,
+    stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,
+  };
 }
 
 export async function getArticleBySlugFromSanity(slug: string): Promise<Article | null> {
@@ -149,24 +337,44 @@ export async function getArticleBySlugFromSanity(slug: string): Promise<Article 
       title: string;
       category: string;
       excerpt: string;
-      content: string;
-      image?: { asset?: { _ref: string } };
+      content: unknown;
+      image?: string | null;
       publishedAt: string;
       order?: number;
+      featured?: boolean;
+      homepageOrder?: number;
+      relatedProducts?: Array<{
+        _id: string;
+        slug: { current: string };
+        name: string;
+        nameEn?: string;
+        category: { slug: { current: string } | null } | null;
+        price: number;
+        originalPrice?: number;
+        description: string;
+        descriptionShort?: string;
+        ingredients?: string;
+        sizes?: string[];
+        image?: string | null;
+        buyUrl?: string;
+        order?: number;
+        featured?: boolean;
+        homepageOrder?: number;
+        stockStatus?: string;
+      } | null>;
     } | null
-  >(`*[_type == "article" && slug.current == $slug][0]`, { slug });
+  >(
+    `*[_type == "article" && slug.current == $slug][0]{
+      _id, slug, title, category, excerpt, content, ${articleImageProjection}, publishedAt, order, featured, homepageOrder,
+      "relatedProducts": relatedProducts[]->{ _id, slug, name, nameEn, "category": category->{ "slug": slug }, price, originalPrice, description, descriptionShort, ingredients, sizes, "image": image.asset->url, buyUrl, order, featured, homepageOrder, stockStatus }
+    }`,
+    { slug }
+  );
   if (!a) return null;
-  return {
-    id: a._id,
-    slug: a.slug?.current ?? a._id,
-    title: a.title,
-    category: a.category,
-    excerpt: a.excerpt,
-    content: a.content,
-    image: a.image ? urlFor({ ...a.image, _type: "image" }) : "/images/placeholder.svg",
-    publishedAt: a.publishedAt,
-    order: a.order,
-  };
+  const relatedProducts = (a.relatedProducts ?? [])
+    .filter((r): r is NonNullable<typeof r> => r != null)
+    .map((r) => mapSanityProductToProduct(r));
+  return mapArticleFromSanity(a, relatedProducts);
 }
 
 export async function getAboutFromSanity(): Promise<AboutContent | null> {

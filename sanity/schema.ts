@@ -4,19 +4,23 @@
  */
 import { defineType, defineField, defineArrayMember } from "sanity";
 
-const productCategory = defineType({
+/** 產品子分類：在 Studio 可新增/編輯，Shop 頁導覽與篩選依此列表 */
+export const productCategory = defineType({
   name: "productCategory",
   title: "Product Category",
-  type: "string",
-  options: {
-    list: [
-      { title: "All", value: "all" },
-      { title: "Skincare", value: "skincare" },
-      { title: "Body Care", value: "body-care" },
-      { title: "Fragrance", value: "fragrance" },
-      { title: "Home", value: "home" },
-    ],
-  },
+  type: "document",
+  fields: [
+    defineField({
+      name: "slug",
+      title: "Slug",
+      type: "slug",
+      description: "網址用英文代碼，例如 skincare、body-care",
+      options: { source: "name" },
+      validation: (r) => r.required(),
+    }),
+    defineField({ name: "name", title: "Display Name (e.g. Skincare)", type: "string", validation: (r) => r.required() }),
+    defineField({ name: "order", title: "Order (顯示順序，數字愈小愈前)", type: "number" }),
+  ],
 });
 
 export const product = defineType({
@@ -36,8 +40,8 @@ export const product = defineType({
     defineField({
       name: "category",
       title: "Category",
-      type: "string",
-      options: { list: ["skincare", "body-care", "fragrance", "home"] },
+      type: "reference",
+      to: [{ type: "productCategory" }],
       validation: (r) => r.required(),
     }),
     defineField({ name: "price", title: "Price (NT$)", type: "number", validation: (r) => r.required() }),
@@ -60,6 +64,55 @@ export const product = defineType({
     }),
     defineField({ name: "buyUrl", title: "Buy URL (外部電商連結)", type: "url" }),
     defineField({ name: "order", title: "Order", type: "number" }),
+    defineField({
+      name: "featured",
+      title: "首頁精選 (Selected Products)",
+      type: "boolean",
+      description: "勾選後會出現在首頁「Selected Products」區塊",
+      initialValue: false,
+    }),
+    defineField({
+      name: "homepageOrder",
+      title: "首頁精選排序",
+      type: "number",
+      description: "數字愈小愈前面顯示，可留空",
+    }),
+    defineField({
+      name: "stockStatus",
+      title: "庫存狀態",
+      type: "string",
+      options: {
+        list: [
+          { title: "有庫存", value: "in_stock" },
+          { title: "暫無庫存", value: "out_of_stock" },
+          { title: "可預訂", value: "preorder" },
+        ],
+      },
+    }),
+  ],
+});
+
+/** 文章內文：可選文字/圖片並加超連結 */
+const articleContentBlock = defineArrayMember({
+  type: "block",
+  marks: {
+    annotations: [
+      {
+        name: "link",
+        type: "object",
+        title: "超連結",
+        fields: [{ name: "href", type: "url", title: "URL" }],
+      },
+    ],
+  },
+});
+
+const articleImageBlock = defineArrayMember({
+  type: "image",
+  options: { hotspot: true },
+  fields: [
+    { name: "link", type: "url", title: "圖片連結（點擊後開啟）" },
+    { name: "alt", type: "string", title: "Alt 文字" },
   ],
 });
 
@@ -78,10 +131,35 @@ export const article = defineType({
     }),
     defineField({ name: "category", title: "Category", type: "string" }),
     defineField({ name: "excerpt", title: "Excerpt", type: "text", validation: (r) => r.required() }),
-    defineField({ name: "content", title: "Content", type: "text", validation: (r) => r.required() }),
+    defineField({
+      name: "content",
+      title: "Content",
+      type: "array",
+      of: [articleContentBlock, articleImageBlock],
+      validation: (r) => r.required(),
+    }),
     defineField({ name: "image", title: "Image", type: "image", options: { hotspot: true } }),
     defineField({ name: "publishedAt", title: "Published At", type: "date", validation: (r) => r.required() }),
     defineField({ name: "order", title: "Order", type: "number" }),
+    defineField({
+      name: "featured",
+      title: "首頁精選 (From the Journal)",
+      type: "boolean",
+      description: "勾選後會出現在首頁「From the Journal」區塊",
+      initialValue: false,
+    }),
+    defineField({
+      name: "homepageOrder",
+      title: "首頁精選排序",
+      type: "number",
+      description: "數字愈小愈前面顯示",
+    }),
+    defineField({
+      name: "relatedProducts",
+      title: "相關產品（文章底部展示）",
+      type: "array",
+      of: [{ type: "reference", to: [{ type: "product" }] }],
+    }),
   ],
 });
 

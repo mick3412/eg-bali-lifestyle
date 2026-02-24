@@ -1,17 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getSiteSettings, getProducts, getArticles, getInstagramPosts } from "@/lib/cms";
+import { getSiteSettings, getFeaturedProducts, getFeaturedArticles, getInstagramPosts } from "@/lib/cms";
 import ProductCard from "@/components/ProductCard";
 import ArticleCard from "@/components/ArticleCard";
 
 export default async function HomePage() {
-  const [settings, allProducts, featuredArticles, instagramPosts] = await Promise.all([
+  const [settings, featuredProducts, featuredArticles, instagramPosts] = await Promise.all([
     getSiteSettings(),
-    getProducts(),
-    getArticles(3),
+    getFeaturedProducts(8),
+    getFeaturedArticles(6),
     getInstagramPosts(6),
   ]);
-  const featuredProducts = allProducts.slice(0, 4);
 
   return (
     <div>
@@ -35,35 +34,39 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Selected Products */}
-      <section className="max-w-6xl mx-auto px-5 py-14 md:py-20">
-        <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
-          <h2 className="font-serif text-2xl md:text-3xl font-semibold text-foreground">Selected Products</h2>
-          <Link href="/shop" className="text-sm tracking-widest uppercase text-foreground hover:text-[var(--accent)] transition-colors link-arrow">
-            View All
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
+      {/* Selected Products（僅在有精選產品時顯示） */}
+      {featuredProducts.length > 0 && (
+        <section className="max-w-6xl mx-auto px-5 py-14 md:py-20">
+          <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+            <h2 className="font-serif text-2xl md:text-3xl font-semibold text-foreground">Selected Products</h2>
+            <Link href="/shop" className="text-sm tracking-widest uppercase text-foreground hover:text-[var(--accent)] transition-colors link-arrow">
+              View All
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            {featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* From the Journal */}
-      <section className="max-w-6xl mx-auto px-5 py-14 md:py-20 border-t border-[var(--border)]">
-        <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
-          <h2 className="font-serif text-2xl md:text-3xl font-semibold text-foreground">From the Journal</h2>
-          <Link href="/journal" className="text-sm tracking-widest uppercase text-foreground hover:text-[var(--accent)] transition-colors link-arrow">
-            Read More
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {featuredArticles.map((article) => (
-            <ArticleCard key={article.id} article={article} />
-          ))}
-        </div>
-      </section>
+      {/* From the Journal（僅在有精選文章時顯示） */}
+      {featuredArticles.length > 0 && (
+        <section className="max-w-6xl mx-auto px-5 py-14 md:py-20 border-t border-[var(--border)]">
+          <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+            <h2 className="font-serif text-2xl md:text-3xl font-semibold text-foreground">From the Journal</h2>
+            <Link href="/journal" className="text-sm tracking-widest uppercase text-foreground hover:text-[var(--accent)] transition-colors link-arrow">
+              Read More
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {featuredArticles.map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Instagram - Follow Along */}
       <section className="max-w-6xl mx-auto px-5 py-14 md:py-20 border-t border-[var(--border)]">
