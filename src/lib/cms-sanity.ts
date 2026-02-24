@@ -137,15 +137,14 @@ export async function getProductsFromSanity(categorySlug?: string): Promise<Prod
       sizes?: string[];
       image?: string | null;
       buyUrl?: string;
-      order?: number;
       featured?: boolean;
       homepageOrder?: number;
       stockStatus?: string;
     }>
   >(
-    `*[_type == "product"]${filter} | order(order asc) {
+    `*[_type == "product"]${filter} | order(_createdAt asc) {
       _id, slug, name, nameEn, "category": category->{ _id, slug, name },
-      price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, order, featured, homepageOrder, stockStatus
+      price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, featured, homepageOrder, stockStatus
     }`,
     slug != null ? { categorySlug: slug } : {}
   );
@@ -164,7 +163,6 @@ export async function getProductsFromSanity(categorySlug?: string): Promise<Prod
     sizes: p.sizes,
     image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
     buyUrl: p.buyUrl,
-    order: p.order,
     featured: p.featured,
     homepageOrder: p.homepageOrder,
     stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,
@@ -189,15 +187,14 @@ export async function getFeaturedProductsFromSanity(limit = 8): Promise<Product[
       sizes?: string[];
       image?: string | null;
       buyUrl?: string;
-      order?: number;
       featured?: boolean;
       homepageOrder?: number;
       stockStatus?: string;
     }>
   >(
-    `*[_type == "product" && featured == true] | order(homepageOrder asc, order asc) [0...$limit] {
+    `*[_type == "product" && featured == true] | order(homepageOrder asc, _createdAt asc) [0...$limit] {
       _id, slug, name, nameEn, "category": category->{ "slug": slug },
-      price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, order, featured, homepageOrder, stockStatus
+      price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, featured, homepageOrder, stockStatus
     }`,
     { limit }
   );
@@ -215,7 +212,6 @@ export async function getFeaturedProductsFromSanity(limit = 8): Promise<Product[
     sizes: p.sizes,
     image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
     buyUrl: p.buyUrl,
-    order: p.order,
     featured: p.featured,
     homepageOrder: p.homepageOrder,
     stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,
@@ -242,12 +238,11 @@ export async function getProductBySlugFromSanity(slug: string): Promise<Product 
       image?: string | null;
       gallery?: Array<{ _type: string; url?: string | null }>;
       buyUrl?: string;
-      order?: number;
       featured?: boolean;
       homepageOrder?: number;
       stockStatus?: string;
     } | null
-  >(`*[_type == "product" && slug.current == $slug][0]{ _id, slug, name, nameEn, "category": category->{ "slug": slug }, price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, ${productGalleryProjection}, buyUrl, order, featured, homepageOrder, stockStatus }`, {
+  >(`*[_type == "product" && slug.current == $slug][0]{ _id, slug, name, nameEn, "category": category->{ "slug": slug }, price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, ${productGalleryProjection}, buyUrl, featured, homepageOrder, stockStatus }`, {
     slug,
   });
   if (!p) return null;
@@ -271,7 +266,6 @@ export async function getProductBySlugFromSanity(slug: string): Promise<Product 
     image: mainImage,
     gallery,
     buyUrl: p.buyUrl,
-    order: p.order,
     featured: p.featured,
     homepageOrder: p.homepageOrder,
     stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,
@@ -304,15 +298,14 @@ export async function getRelatedProductsFromSanity(
       sizes?: string[];
       image?: string | null;
       buyUrl?: string;
-      order?: number;
       featured?: boolean;
       homepageOrder?: number;
       stockStatus?: string;
     }>
   >(
-    `*[_type == "product"]${filter} | order(order asc) [0...$limit] {
+    `*[_type == "product"]${filter} | order(_createdAt asc) [0...$limit] {
       _id, slug, name, nameEn, "category": category->{ _id, slug, name },
-      price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, order, featured, homepageOrder, stockStatus
+      price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, featured, homepageOrder, stockStatus
     }`,
     { excludeId, categorySlug, limit }
   );
@@ -330,7 +323,6 @@ export async function getRelatedProductsFromSanity(
     sizes: p.sizes,
     image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
     buyUrl: p.buyUrl,
-    order: p.order,
     featured: p.featured,
     homepageOrder: p.homepageOrder,
     stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,

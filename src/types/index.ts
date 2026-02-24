@@ -25,7 +25,6 @@ export interface Product {
   ingredients?: string;
   sizes?: string[];
   image: string;
-  images?: string[];
   /** 產品頁輪播：圖片與影片依 CMS 排列順序，可為空（則僅顯示主圖） */
   gallery?: { type: "image" | "video"; url: string }[];
   buyUrl?: string;

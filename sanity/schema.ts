@@ -57,12 +57,6 @@ export const product = defineType({
     }),
     defineField({ name: "image", title: "Main Image", type: "image", options: { hotspot: true } }),
     defineField({
-      name: "images",
-      title: "Additional Images",
-      type: "array",
-      of: [{ type: "image", options: { hotspot: true } }],
-    }),
-    defineField({
       name: "gallery",
       title: "產品圖/影片輪播",
       type: "array",
@@ -73,7 +67,6 @@ export const product = defineType({
       ],
     }),
     defineField({ name: "buyUrl", title: "Buy URL (外部電商連結)", type: "url" }),
-    defineField({ name: "order", title: "Order", type: "number" }),
     defineField({
       name: "featured",
       title: "首頁精選 (Selected Products)",
