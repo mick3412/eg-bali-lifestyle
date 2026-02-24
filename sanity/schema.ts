@@ -352,6 +352,24 @@ export const siteSettings = defineType({
       type: "string",
       description: "較長版本的品牌敘述，視設計需要顯示",
     }),
+    defineField({
+      name: "selectedProductsTitle",
+      title: "首頁區塊標題：Selected Products",
+      type: "string",
+      description: "首頁「精選產品」區塊的標題，留空則顯示「Selected Products」",
+    }),
+    defineField({
+      name: "selectedJournalTitle",
+      title: "首頁區塊標題：Selected Journal",
+      type: "string",
+      description: "首頁「精選文章」區塊的標題，留空則顯示「Selected Journal」",
+    }),
+    defineField({
+      name: "followForMoreTitle",
+      title: "首頁區塊標題：Follow for More",
+      type: "string",
+      description: "首頁 Instagram 區塊的標題，留空則顯示「Follow for More」",
+    }),
     defineField({ name: "email", title: "聯絡 Email", type: "string" }),
     defineField({
       name: "instagramHandle",

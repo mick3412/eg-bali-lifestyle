@@ -35,6 +35,9 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     siteName?: string;
     tagline?: string;
     taglineLong?: string;
+    selectedProductsTitle?: string;
+    selectedJournalTitle?: string;
+    followForMoreTitle?: string;
     email?: string;
     instagramHandle?: string;
     instagramUrl?: string;
@@ -45,7 +48,8 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     bannerImages?: Array<{ url?: string; link?: string; alt?: string; order?: number }>;
   } | null>(
     `*[_type == "siteSettings"][0] {
-      siteName, tagline, taglineLong, email, instagramHandle, instagramUrl,
+      siteName, tagline, taglineLong, selectedProductsTitle, selectedJournalTitle, followForMoreTitle,
+      email, instagramHandle, instagramUrl,
       "instagramPosts": instagramPosts[] {
         "imageUrl": image.asset->url,
         url
@@ -75,6 +79,9 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     siteName: doc.siteName ?? "Eg. Bali Lifestyle",
     tagline: doc.tagline ?? "",
     taglineLong: doc.taglineLong ?? "",
+    selectedProductsTitle: doc.selectedProductsTitle?.trim() || undefined,
+    selectedJournalTitle: doc.selectedJournalTitle?.trim() || undefined,
+    followForMoreTitle: doc.followForMoreTitle?.trim() || undefined,
     email: doc.email ?? "",
     instagramHandle: doc.instagramHandle ?? "",
     instagramUrl: doc.instagramUrl ?? "",

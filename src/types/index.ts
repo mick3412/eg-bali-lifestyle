@@ -105,10 +105,16 @@ export interface SiteSettings {
   siteName: string;
   tagline: string;
   taglineLong?: string;
+  /** 首頁「精選產品」區塊標題，留空則用預設 "Selected Products" */
+  selectedProductsTitle?: string;
+  /** 首頁「精選文章」區塊標題，留空則用預設 "Selected Journal" */
+  selectedJournalTitle?: string;
+  /** 首頁 Instagram 區塊標題，留空則用預設 "Follow for More" */
+  followForMoreTitle?: string;
   email: string;
   instagramHandle: string;
   instagramUrl: string;
-  /** 首頁 Follow Along 區塊使用的 Instagram 貼文（最多 4 則，含縮圖與連結） */
+  /** 首頁 Instagram 區塊使用的貼文（最多 4 則，含縮圖與連結） */
   instagramPosts?: InstagramPostSlot[];
   copyright: string;
   /** Google Tag (GA4 / Google Ads) ID，例如 G-XXXXXXXXXX 或 AW-XXXXXXXXXX */
