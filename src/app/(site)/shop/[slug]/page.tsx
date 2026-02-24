@@ -32,7 +32,7 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-10 md:py-14">
-      <nav className="text-sm text-[var(--muted)] mb-6">
+      <nav className="typo-bodySmall text-[var(--muted)] mb-6">
         <Link href="/" className="hover:text-foreground">首頁</Link>
         <span className="mx-1">/</span>
         <Link href="/shop" className="hover:text-foreground">Shop</Link>
@@ -52,40 +52,40 @@ export default async function ProductPage({ params }: Props) {
           />
         </div>
         <div>
-          <p className="text-xs tracking-widest uppercase text-[var(--muted)] mb-1">
+          <p className="typo-caption tracking-widest uppercase text-[var(--muted)] mb-1">
             {categoryName}
           </p>
-          <h1 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-3">
+          <h1 className="typo-sectionTitle font-semibold text-foreground mb-3">
             {product.nameEn ?? product.name}
           </h1>
-          <p className="text-lg text-foreground mb-2">
+          <p className="typo-price text-foreground mb-2">
             {formatPrice(product.price)}
             {product.originalPrice != null && (
-              <span className="ml-2 text-sm text-[var(--muted)] line-through">
+              <span className="ml-2 typo-bodySmall text-[var(--muted)] line-through">
                 {formatPrice(product.originalPrice)}
               </span>
             )}
           </p>
           {product.stockStatus && (
-            <p className="text-xs tracking-widest uppercase text-[var(--muted)] mb-3">
+            <p className="typo-caption tracking-widest uppercase text-[var(--muted)] mb-3">
               {product.stockStatus === "in_stock" && "有庫存"}
               {product.stockStatus === "out_of_stock" && "暫無庫存"}
               {product.stockStatus === "preorder" && "可預訂"}
             </p>
           )}
-          <p className="text-sm text-[var(--muted)] leading-relaxed mb-6">
+          <p className="typo-body text-[var(--muted)] leading-relaxed mb-6">
             {product.description}
           </p>
           {product.ingredients && (
             <div className="mb-6">
-              <h3 className="text-xs font-medium uppercase tracking-widest text-foreground mb-2">成分</h3>
-              <p className="text-sm text-[var(--muted)]">{product.ingredients}</p>
+              <h3 className="typo-caption font-medium uppercase tracking-widest text-foreground mb-2">成分</h3>
+              <p className="typo-bodySmall text-[var(--muted)]">{product.ingredients}</p>
             </div>
           )}
           {product.sizes && product.sizes.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-xs font-medium uppercase tracking-widest text-foreground mb-2">尺寸</h3>
-              <p className="text-sm text-[var(--muted)]">{product.sizes.join("、")}</p>
+              <h3 className="typo-caption font-medium uppercase tracking-widest text-foreground mb-2">尺寸</h3>
+              <p className="typo-bodySmall text-[var(--muted)]">{product.sizes.join("、")}</p>
             </div>
           )}
           {product.buyUrl ? (
@@ -93,18 +93,18 @@ export default async function ProductPage({ params }: Props) {
               href={product.buyUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[var(--accent)] text-white px-6 py-3 text-sm tracking-widest uppercase hover:opacity-90 transition-opacity"
+              className="typo-button inline-flex items-center gap-2 bg-[var(--accent)] text-white px-6 py-3 tracking-widest uppercase hover:opacity-90 transition-opacity"
             >
               前往購買
               <span aria-hidden>→</span>
             </a>
           ) : (
-            <span className="inline-flex items-center gap-2 bg-[var(--border)] text-[var(--muted)] px-6 py-3 text-sm cursor-not-allowed">
+            <span className="typo-button inline-flex items-center gap-2 bg-[var(--border)] text-[var(--muted)] px-6 py-3 cursor-not-allowed">
               前往購買（請在 CMS 設定連結）
             </span>
           )}
           <p className="mt-4">
-            <Link href="/shop" className="text-sm text-[var(--muted)] hover:text-foreground transition-colors">
+            <Link href="/shop" className="typo-bodySmall text-[var(--muted)] hover:text-foreground transition-colors">
               ← 返回商店
             </Link>
           </p>
@@ -113,7 +113,7 @@ export default async function ProductPage({ params }: Props) {
 
       {related.length > 0 && (
         <section className="mt-16 md:mt-24 pt-14 border-t border-[var(--border)]">
-          <h2 className="font-serif text-2xl font-semibold text-foreground mb-6">相關產品</h2>
+          <h2 className="typo-sectionTitle font-semibold text-foreground mb-6">相關產品</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />

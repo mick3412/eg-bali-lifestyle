@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import TypographyInjector from "@/components/TypographyInjector";
 import { getSiteSettings } from "@/lib/cms";
 
 export default async function SiteLayout({
@@ -10,6 +11,7 @@ export default async function SiteLayout({
   const settings = await getSiteSettings();
   return (
     <div className="min-h-screen flex flex-col">
+      <TypographyInjector />
       <Header settings={settings} />
       <main className="flex-1 pt-[60px]">{children}</main>
       <Footer settings={settings} />

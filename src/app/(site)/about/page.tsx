@@ -10,11 +10,11 @@ export default async function AboutPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-5 py-10 md:py-14">
-      <h1 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-10">
+      <h1 className="typo-sectionTitle font-semibold text-foreground mb-10">
         {about.storyTitle}
       </h1>
 
-      <div className="space-y-6 text-[var(--foreground)] leading-relaxed mb-14">
+      <div className="space-y-6 typo-body text-[var(--foreground)] leading-relaxed mb-14">
         {about.storyContent.map((para, i) => (
           <p key={i}>{para}</p>
         ))}
@@ -22,16 +22,16 @@ export default async function AboutPage() {
 
       {about.values && about.values.length > 0 && (
         <section className="mb-14">
-          <h2 className="font-serif text-2xl font-semibold text-foreground mb-8 text-center">
+          <h2 className="typo-sectionTitle font-semibold text-foreground mb-8 text-center">
             What We Stand For
           </h2>
           <div className="space-y-10">
             {about.values.map((value) => (
               <div key={value.title} className="text-center">
-                <h3 className="font-serif text-xl font-semibold text-foreground mb-2">
+                <h3 className="typo-cardTitle font-semibold text-foreground mb-2">
                   {value.title}
                 </h3>
-                <p className="text-[var(--muted)] max-w-xl mx-auto">{value.description}</p>
+                <p className="typo-body text-[var(--muted)] max-w-xl mx-auto">{value.description}</p>
               </div>
             ))}
           </div>
@@ -39,17 +39,17 @@ export default async function AboutPage() {
       )}
 
       <section className="border-t border-[var(--border)] pt-14">
-        <p className="font-serif text-xl font-semibold text-foreground mb-2">{settings.siteName}</p>
-        <p className="text-sm text-[var(--muted)] mb-2">
+        <p className="typo-sectionTitle font-semibold text-foreground mb-2">{settings.siteName}</p>
+        <p className="typo-bodySmall text-[var(--muted)] mb-2">
           {settings.tagline}. {settings.taglineLong}
         </p>
         {about.founderTitle && (
-          <p className="text-xs tracking-widest uppercase text-[var(--muted)] mt-4">
+          <p className="typo-caption tracking-widest uppercase text-[var(--muted)] mt-4">
             {about.founderTitle}
           </p>
         )}
         {about.founderBio && (
-          <p className="text-sm text-[var(--muted)] mt-1">{about.founderBio}</p>
+          <p className="typo-bodySmall text-[var(--muted)] mt-1">{about.founderBio}</p>
         )}
       </section>
     </div>

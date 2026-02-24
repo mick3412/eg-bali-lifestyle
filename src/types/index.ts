@@ -77,7 +77,24 @@ export interface AboutContent {
   founderBio?: string;
 }
 
+/** 首頁橫幅單張 */
+export interface BannerImage {
+  url: string;
+  link?: string;
+  alt?: string;
+  order?: number;
+}
+
+/** 單一文字分類樣式（CMS 可調字體、字級） */
+export interface TypographyStyle {
+  key: string;
+  name?: string;
+  fontFamily?: string;
+  fontSize?: string;
+}
+
 export interface SiteSettings {
+  bannerImages?: BannerImage[];
   siteName: string;
   tagline: string;
   taglineLong?: string;
@@ -92,4 +109,9 @@ export interface InstagramPost {
   imageUrl: string;
   link: string;
   order?: number;
+}
+
+/** 全站字體設定（Typography 文件） */
+export interface TypographySettings {
+  styles: TypographyStyle[];
 }

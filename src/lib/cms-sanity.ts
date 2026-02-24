@@ -3,7 +3,7 @@
  * 當 NEXT_PUBLIC_SANITY_PROJECT_ID 已設定時，cms.ts 會改用此模組的資料
  */
 import { client, isSanityConfigured } from "./sanity";
-import type { Product, Article, AboutContent, SiteSettings, InstagramPost, ProductCategoryItem, PortableTextBlock } from "@/types";
+import type { Product, Article, AboutContent, SiteSettings, InstagramPost, ProductCategoryItem, PortableTextBlock, TypographySettings } from "@/types";
 import imageUrlBuilder from "@sanity/image-url";
 
 const getClient = () => (client ?? (null as never));
@@ -28,18 +28,54 @@ const articleImageProjection = '"image": image.asset->url';
 
 export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> {
   if (!isSanityConfigured()) return null;
-  const doc = await getClient().fetch<Record<string, unknown> | null>(
-    `*[_type == "siteSettings"][0]`
+  const doc = await getClient().fetch<{
+    siteName?: string;
+    tagline?: string;
+    taglineLong?: string;
+    email?: string;
+    instagramHandle?: string;
+    instagramUrl?: string;
+    copyright?: string;
+    bannerImages?: Array<{ url?: string; link?: string; alt?: string; order?: number }>;
+  } | null>(
+    `*[_type == "siteSettings"][0] {
+      siteName, tagline, taglineLong, email, instagramHandle, instagramUrl, copyright,
+      "bannerImages": bannerImages[] {
+        "url": image.asset->url,
+        link,
+        alt,
+        order
+      }
+    }`
   );
   if (!doc) return null;
+  const bannerImages = (doc.bannerImages ?? [])
+    .filter((b) => b.url && b.url.startsWith("http"))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .slice(0, 3)
+    .map((b) => ({ url: b.url!, link: b.link, alt: b.alt, order: b.order }));
   return {
-    siteName: (doc.siteName as string) ?? "Eg. Bali Lifestyle",
-    tagline: (doc.tagline as string) ?? "",
-    taglineLong: (doc.taglineLong as string) ?? "",
-    email: (doc.email as string) ?? "",
-    instagramHandle: (doc.instagramHandle as string) ?? "",
-    instagramUrl: (doc.instagramUrl as string) ?? "",
-    copyright: (doc.copyright as string) ?? "",
+    bannerImages: bannerImages.length > 0 ? bannerImages : undefined,
+    siteName: doc.siteName ?? "Eg. Bali Lifestyle",
+    tagline: doc.tagline ?? "",
+    taglineLong: doc.taglineLong ?? "",
+    email: doc.email ?? "",
+    instagramHandle: doc.instagramHandle ?? "",
+    instagramUrl: doc.instagramUrl ?? "",
+    copyright: doc.copyright ?? "",
+  };
+}
+
+export async function getTypographyFromSanity(): Promise<TypographySettings | null> {
+  if (!isSanityConfigured()) return null;
+  const doc = await getClient().fetch<{ styles?: Array<{ key?: string; name?: string; fontFamily?: string; fontSize?: string }> } | null>(
+    `*[_type == "typographySettings"][0] { "styles": styles[] { key, name, fontFamily, fontSize } }`
+  );
+  if (!doc?.styles?.length) return null;
+  return {
+    styles: doc.styles
+      .filter((s) => s.key)
+      .map((s) => ({ key: s.key!, name: s.name, fontFamily: s.fontFamily, fontSize: s.fontSize })),
   };
 }
 
@@ -61,7 +97,8 @@ export async function getCategoriesFromSanity(): Promise<ProductCategoryItem[]> 
 
 export async function getProductsFromSanity(categorySlug?: string): Promise<Product[]> {
   if (!isSanityConfigured()) return [];
-  const filter = categorySlug && categorySlug !== "all" ? `&& category->slug.current == $categorySlug` : "";
+  const slug = typeof categorySlug === "string" && categorySlug !== "all" ? categorySlug : undefined;
+  const filter = slug ? `&& category->slug.current == $categorySlug` : "";
   const list = await getClient().fetch<
     Array<{
       _id: string;
@@ -87,9 +124,10 @@ export async function getProductsFromSanity(categorySlug?: string): Promise<Prod
       _id, slug, name, nameEn, "category": category->{ _id, slug, name },
       price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, order, featured, homepageOrder, stockStatus
     }`,
-    { categorySlug }
+    slug != null ? { categorySlug: slug } : {}
   );
-  return list.map((p) => ({
+  const items = Array.isArray(list) ? list : [];
+  return items.map((p) => ({
     id: p._id,
     slug: p.slug?.current ?? p._id,
     name: p.name,

@@ -30,7 +30,7 @@ export default async function ArticlePage({ params }: Props) {
 
   return (
     <article className="max-w-3xl mx-auto px-5 py-10 md:py-14">
-      <nav className="text-sm text-[var(--muted)] mb-6">
+      <nav className="typo-bodySmall text-[var(--muted)] mb-6">
         <Link href="/" className="hover:text-foreground">首頁</Link>
         <span className="mx-1">/</span>
         <Link href="/journal" className="hover:text-foreground">Journal</Link>
@@ -49,15 +49,15 @@ export default async function ArticlePage({ params }: Props) {
         />
       </div>
 
-      <p className="text-xs tracking-widest uppercase text-[var(--accent)] mb-2">{article.category}</p>
-      <h1 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-2">{article.title}</h1>
-      <p className="text-sm text-[var(--muted)] mb-8">{formatDate(article.publishedAt)}</p>
+      <p className="typo-cardMeta tracking-widest uppercase text-[var(--accent)] mb-2">{article.category}</p>
+      <h1 className="typo-sectionTitle font-semibold text-foreground mb-2">{article.title}</h1>
+      <p className="typo-bodySmall text-[var(--muted)] mb-8">{formatDate(article.publishedAt)}</p>
 
       <ArticleContent content={article.content} />
 
       {article.relatedProducts && article.relatedProducts.length > 0 && (
         <section className="mt-12 pt-10 border-t border-[var(--border)]">
-          <h2 className="font-serif text-xl font-semibold text-foreground mb-6">相關產品</h2>
+          <h2 className="typo-sectionTitle font-semibold text-foreground mb-6">相關產品</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {article.relatedProducts.map((p) => (
               <ProductCard key={p.id} product={p} />
@@ -70,20 +70,20 @@ export default async function ArticlePage({ params }: Props) {
         {prev ? (
           <Link
             href={`/journal/${prev.slug}`}
-            className="text-sm text-[var(--muted)] hover:text-foreground transition-colors"
+            className="typo-bodySmall text-[var(--muted)] hover:text-foreground transition-colors"
           >
             ← {prev.title}
           </Link>
         ) : (
           <span />
         )}
-        <Link href="/journal" className="text-sm text-[var(--muted)] hover:text-foreground transition-colors order-first sm:order-none">
+        <Link href="/journal" className="typo-bodySmall text-[var(--muted)] hover:text-foreground transition-colors order-first sm:order-none">
           返回 Journal
         </Link>
         {next ? (
           <Link
             href={`/journal/${next.slug}`}
-            className="text-sm text-[var(--muted)] hover:text-foreground transition-colors text-right"
+            className="typo-bodySmall text-[var(--muted)] hover:text-foreground transition-colors text-right"
           >
             {next.title} →
           </Link>

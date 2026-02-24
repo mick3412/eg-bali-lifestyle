@@ -11,7 +11,7 @@ function urlFor(source: { _type?: string; asset?: { _ref: string } } | undefined
 
 const portableTextComponents: PortableTextComponents = {
   block: {
-    normal: ({ children }) => <p className="mb-4 text-[var(--foreground)] leading-relaxed">{children}</p>,
+    normal: ({ children }) => <p className="typo-body mb-4 text-[var(--foreground)] leading-relaxed">{children}</p>,
   },
   marks: {
     link: ({ value, children }) => (
@@ -68,7 +68,7 @@ export default function ArticleContent({ content }: Props) {
     return (
       <div className="prose prose-neutral max-w-none text-foreground">
         {content.split("\n\n").map((para, i) => (
-          <p key={i} className="mb-4 text-[var(--foreground)] leading-relaxed">
+          <p key={i} className="typo-body mb-4 text-[var(--foreground)] leading-relaxed">
             {para}
           </p>
         ))}

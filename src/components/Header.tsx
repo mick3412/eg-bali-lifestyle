@@ -18,7 +18,7 @@ export default function Header({ settings }: { settings: SiteSettings }) {
       <div className="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
         <Link
           href="/"
-          className="font-serif text-xl md:text-2xl font-semibold text-foreground tracking-tight hover:opacity-80 transition-opacity"
+          className="typo-sectionTitle font-semibold text-foreground tracking-tight hover:opacity-80 transition-opacity"
         >
           {settings.siteName}
         </Link>
@@ -47,7 +47,7 @@ export default function Header({ settings }: { settings: SiteSettings }) {
             <Link
               key={href}
               href={href}
-              className="text-sm tracking-widest uppercase text-foreground/90 hover:text-foreground transition-colors"
+              className="typo-nav tracking-widest uppercase text-foreground/90 hover:text-foreground transition-colors"
             >
               {label}
             </Link>
@@ -63,7 +63,7 @@ export default function Header({ settings }: { settings: SiteSettings }) {
               <Link
                 key={href}
                 href={href}
-                className="py-3 text-sm tracking-widest uppercase text-foreground border-b border-[var(--border)] last:border-0"
+                className="typo-nav py-3 tracking-widest uppercase text-foreground border-b border-[var(--border)] last:border-0"
                 onClick={() => setMenuOpen(false)}
               >
                 {label}

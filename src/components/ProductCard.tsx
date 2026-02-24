@@ -22,10 +22,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           sizes="(max-width: 768px) 50vw, 33vw"
         />
       </div>
-      <p className="font-serif text-base font-medium text-foreground group-hover:text-[var(--accent)] transition-colors">
+      <p className="typo-cardTitle font-medium text-foreground group-hover:text-[var(--accent)] transition-colors">
         {product.nameEn ?? product.name}
       </p>
-      <p className="text-sm text-[var(--muted)] mt-0.5">
+      <p className="typo-price text-[var(--muted)] mt-0.5">
         {formatPrice(product.price)}
         {product.originalPrice != null && (
           <span className="ml-2 line-through">{formatPrice(product.originalPrice)}</span>

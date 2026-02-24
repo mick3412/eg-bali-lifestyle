@@ -13,7 +13,7 @@ export default function ShopCategoryNav({ categories, currentCategory }: Props) 
     <nav className="flex flex-wrap gap-2 border-b border-[var(--border)] pb-4">
       <Link
         href="/shop"
-        className={`text-sm tracking-widest uppercase px-3 py-1.5 transition-colors ${
+        className={`typo-sectionLink tracking-widest uppercase px-3 py-1.5 transition-colors ${
           currentCategory === "all"
             ? "text-foreground font-medium border-b-2 border-foreground -mb-[9px]"
             : "text-[var(--muted)] hover:text-foreground"
@@ -25,7 +25,7 @@ export default function ShopCategoryNav({ categories, currentCategory }: Props) 
         <Link
           key={cat.id}
           href={`/shop?category=${encodeURIComponent(cat.slug)}`}
-          className={`text-sm tracking-widest uppercase px-3 py-1.5 transition-colors ${
+          className={`typo-sectionLink tracking-widest uppercase px-3 py-1.5 transition-colors ${
             currentCategory === cat.slug
               ? "text-foreground font-medium border-b-2 border-foreground -mb-[9px]"
               : "text-[var(--muted)] hover:text-foreground"
