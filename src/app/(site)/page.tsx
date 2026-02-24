@@ -5,6 +5,9 @@ import ProductCard from "@/components/ProductCard";
 import ArticleCard from "@/components/ArticleCard";
 import HeroBanner from "@/components/HeroBanner";
 
+/** 首頁每 60 秒可重新向 Sanity 取數，讓發布/精選的內容能同步顯示 */
+export const revalidate = 60;
+
 export default async function HomePage() {
   const [settings, featuredProducts, featuredArticles, instagramPosts] = await Promise.all([
     getSiteSettings(),

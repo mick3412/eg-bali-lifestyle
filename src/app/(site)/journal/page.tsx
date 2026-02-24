@@ -7,6 +7,9 @@ export const metadata = {
   description: "Stories, wellness, and mindful living from Eg. Bali Lifestyle.",
 };
 
+/** 與首頁一致，定期向 Sanity 取最新文章列表 */
+export const revalidate = 60;
+
 export default async function JournalPage() {
   const articles = await getArticles();
 

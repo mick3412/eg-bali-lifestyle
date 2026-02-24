@@ -26,6 +26,8 @@ export interface Product {
   sizes?: string[];
   image: string;
   images?: string[];
+  /** 產品頁輪播：圖片與影片依 CMS 排列順序，可為空（則僅顯示主圖） */
+  gallery?: { type: "image" | "video"; url: string }[];
   buyUrl?: string;
   order?: number;
   /** 是否在首頁 Selected Products 區塊顯示 */
@@ -102,6 +104,10 @@ export interface SiteSettings {
   instagramHandle: string;
   instagramUrl: string;
   copyright: string;
+  /** Google Tag (GA4 / Google Ads) ID，例如 G-XXXXXXXXXX 或 AW-XXXXXXXXXX */
+  googleTagId?: string;
+  /** Meta (Facebook) 像素 ID */
+  metaPixelId?: string;
 }
 
 export interface InstagramPost {

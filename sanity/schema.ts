@@ -62,6 +62,16 @@ export const product = defineType({
       type: "array",
       of: [{ type: "image", options: { hotspot: true } }],
     }),
+    defineField({
+      name: "gallery",
+      title: "產品圖/影片輪播",
+      type: "array",
+      description: "可上傳多張圖片或影片，拖曳項目可調整顯示順序；若為空則使用上方主圖。",
+      of: [
+        defineArrayMember({ type: "image", options: { hotspot: true } }),
+        defineArrayMember({ type: "file", options: { accept: "video/*" } }),
+      ],
+    }),
     defineField({ name: "buyUrl", title: "Buy URL (外部電商連結)", type: "url" }),
     defineField({ name: "order", title: "Order", type: "number" }),
     defineField({
@@ -228,6 +238,18 @@ export const siteSettings = defineType({
     defineField({ name: "instagramHandle", title: "Instagram Handle", type: "string" }),
     defineField({ name: "instagramUrl", title: "Instagram URL", type: "url" }),
     defineField({ name: "copyright", title: "Copyright", type: "string" }),
+    defineField({
+      name: "googleTagId",
+      title: "Google 廣告追蹤 (Tag ID)",
+      type: "string",
+      description: "Google Analytics 4 或 Google Ads 的衡量/轉換 ID，例如 G-XXXXXXXXXX 或 AW-XXXXXXXXXX。留空則不載入。",
+    }),
+    defineField({
+      name: "metaPixelId",
+      title: "Meta (Facebook) 像素 ID",
+      type: "string",
+      description: "Meta 廣告管理員中的像素 ID（數字）。留空則不載入。",
+    }),
   ],
 });
 

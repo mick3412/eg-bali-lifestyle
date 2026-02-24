@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getProductBySlug, getRelatedProducts, getCategoryName } from "@/lib/cms";
 import ProductCard from "@/components/ProductCard";
+import ProductGallery from "@/components/ProductGallery";
 
 function formatPrice(n: number) {
   return `NT$ ${n.toLocaleString()}`;
@@ -30,6 +30,11 @@ export default async function ProductPage({ params }: Props) {
     getCategoryName(product.category),
   ]);
 
+  const galleryItems = [
+    { type: "image" as const, url: product.image },
+    ...(product.gallery ?? []),
+  ];
+
   return (
     <div className="max-w-6xl mx-auto px-5 py-10 md:py-14">
       <nav className="typo-bodySmall text-[var(--muted)] mb-6">
@@ -41,16 +46,7 @@ export default async function ProductPage({ params }: Props) {
       </nav>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
-        <div className="aspect-[3/4] relative bg-[var(--border)] overflow-hidden">
-          <Image
-            src={product.image}
-            alt={product.name}
-            fill
-            className="object-cover"
-            priority
-            sizes="(max-width: 768px) 100vw, 50vw"
-          />
-        </div>
+        <ProductGallery items={galleryItems} alt={product.name} />
         <div>
           <p className="typo-caption tracking-widest uppercase text-[var(--muted)] mb-1">
             {categoryName}
@@ -58,21 +54,6 @@ export default async function ProductPage({ params }: Props) {
           <h1 className="typo-sectionTitle font-semibold text-foreground mb-3">
             {product.nameEn ?? product.name}
           </h1>
-          <p className="typo-price text-foreground mb-2">
-            {formatPrice(product.price)}
-            {product.originalPrice != null && (
-              <span className="ml-2 typo-bodySmall text-[var(--muted)] line-through">
-                {formatPrice(product.originalPrice)}
-              </span>
-            )}
-          </p>
-          {product.stockStatus && (
-            <p className="typo-caption tracking-widest uppercase text-[var(--muted)] mb-3">
-              {product.stockStatus === "in_stock" && "有庫存"}
-              {product.stockStatus === "out_of_stock" && "暫無庫存"}
-              {product.stockStatus === "preorder" && "可預訂"}
-            </p>
-          )}
           <p className="typo-body text-[var(--muted)] leading-relaxed mb-6">
             {product.description}
           </p>
@@ -88,6 +69,23 @@ export default async function ProductPage({ params }: Props) {
               <p className="typo-bodySmall text-[var(--muted)]">{product.sizes.join("、")}</p>
             </div>
           )}
+          <div className="mt-6 mb-4">
+            <p className="typo-price text-foreground mb-1">
+              {formatPrice(product.price)}
+              {product.originalPrice != null && (
+                <span className="ml-2 typo-bodySmall text-[var(--muted)] line-through">
+                  {formatPrice(product.originalPrice)}
+                </span>
+              )}
+            </p>
+            {product.stockStatus && (
+              <p className="typo-caption tracking-widest uppercase text-[var(--muted)]">
+                {product.stockStatus === "in_stock" && "有庫存"}
+                {product.stockStatus === "out_of_stock" && "暫無庫存"}
+                {product.stockStatus === "preorder" && "可預訂"}
+              </p>
+            )}
+          </div>
           {product.buyUrl ? (
             <a
               href={product.buyUrl}

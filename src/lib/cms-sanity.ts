@@ -24,7 +24,10 @@ function urlFor(source: { _type?: string; asset?: { _ref: string; _id?: string }
 
 /** 從 GROQ 取得圖片 URL（展開 asset->url 最穩定，避免前端破圖） */
 const productImageProjection = '"image": image.asset->url';
-const articleImageProjection = '"image": image.asset->url';
+/** 文章縮圖：保留 image 物件由 urlFor 建 URL，較穩定 */
+const articleImageSelect = 'image';
+
+type SanityImageSource = { _type?: string; asset?: { _ref: string; _id?: string } } | string | null | undefined;
 
 export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> {
   if (!isSanityConfigured()) return null;
@@ -36,10 +39,12 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     instagramHandle?: string;
     instagramUrl?: string;
     copyright?: string;
+    googleTagId?: string;
+    metaPixelId?: string;
     bannerImages?: Array<{ url?: string; link?: string; alt?: string; order?: number }>;
   } | null>(
     `*[_type == "siteSettings"][0] {
-      siteName, tagline, taglineLong, email, instagramHandle, instagramUrl, copyright,
+      siteName, tagline, taglineLong, email, instagramHandle, instagramUrl, copyright, googleTagId, metaPixelId,
       "bannerImages": bannerImages[] {
         "url": image.asset->url,
         link,
@@ -63,6 +68,8 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     instagramHandle: doc.instagramHandle ?? "",
     instagramUrl: doc.instagramUrl ?? "",
     copyright: doc.copyright ?? "",
+    googleTagId: doc.googleTagId && doc.googleTagId.trim() ? doc.googleTagId.trim() : undefined,
+    metaPixelId: doc.metaPixelId && doc.metaPixelId.trim() ? doc.metaPixelId.trim() : undefined,
   };
 }
 
@@ -97,8 +104,11 @@ export async function getCategoriesFromSanity(): Promise<ProductCategoryItem[]> 
 
 export async function getProductsFromSanity(categorySlug?: string): Promise<Product[]> {
   if (!isSanityConfigured()) return [];
-  const slug = typeof categorySlug === "string" && categorySlug !== "all" ? categorySlug : undefined;
-  const filter = slug ? `&& category->slug.current == $categorySlug` : "";
+  const raw = typeof categorySlug === "string" && categorySlug !== "all" ? categorySlug.trim() : "";
+  const slug = raw || undefined;
+  const filter = slug
+    ? `&& defined(category) && category->slug.current != null && lower(category->slug.current) == lower($categorySlug)`
+    : "";
   const list = await getClient().fetch<
     Array<{
       _id: string;
@@ -199,6 +209,8 @@ export async function getFeaturedProductsFromSanity(limit = 8): Promise<Product[
   }));
 }
 
+const productGalleryProjection = '"gallery": gallery[] { _type, "url": asset->url }';
+
 export async function getProductBySlugFromSanity(slug: string): Promise<Product | null> {
   if (!isSanityConfigured()) return null;
   const p = await getClient().fetch<
@@ -215,16 +227,22 @@ export async function getProductBySlugFromSanity(slug: string): Promise<Product 
       ingredients?: string;
       sizes?: string[];
       image?: string | null;
+      gallery?: Array<{ _type: string; url?: string | null }>;
       buyUrl?: string;
       order?: number;
       featured?: boolean;
       homepageOrder?: number;
       stockStatus?: string;
     } | null
-  >(`*[_type == "product" && slug.current == $slug][0]{ _id, slug, name, nameEn, "category": category->{ "slug": slug }, price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, order, featured, homepageOrder, stockStatus }`, {
+  >(`*[_type == "product" && slug.current == $slug][0]{ _id, slug, name, nameEn, "category": category->{ "slug": slug }, price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, ${productGalleryProjection}, buyUrl, order, featured, homepageOrder, stockStatus }`, {
     slug,
   });
   if (!p) return null;
+  const mainImage = p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg";
+  const galleryItems = (p.gallery ?? [])
+    .filter((g): g is { _type: string; url: string } => !!g?.url && g.url.startsWith("http"))
+    .map((g) => ({ type: (g._type === "file" ? "video" : "image") as "image" | "video", url: g.url }));
+  const gallery = galleryItems.length > 0 ? galleryItems : undefined;
   return {
     id: p._id,
     slug: p.slug?.current ?? p._id,
@@ -237,7 +255,8 @@ export async function getProductBySlugFromSanity(slug: string): Promise<Product 
     descriptionShort: p.descriptionShort,
     ingredients: p.ingredients,
     sizes: p.sizes,
-    image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
+    image: mainImage,
+    gallery,
     buyUrl: p.buyUrl,
     order: p.order,
     featured: p.featured,
@@ -257,7 +276,7 @@ export async function getFeaturedArticlesFromSanity(limit = 6): Promise<Article[
       category: string;
       excerpt: string;
       content: unknown;
-      image?: string | null;
+      image?: SanityImageSource;
       publishedAt: string;
       order?: number;
       featured?: boolean;
@@ -265,7 +284,7 @@ export async function getFeaturedArticlesFromSanity(limit = 6): Promise<Article[
     }>
   >(
     `*[_type == "article" && featured == true] | order(homepageOrder asc, publishedAt desc) [0...$limit] {
-      _id, slug, title, category, excerpt, content, ${articleImageProjection}, publishedAt, order, featured, homepageOrder
+      _id, slug, title, category, excerpt, content, ${articleImageSelect}, publishedAt, order, featured, homepageOrder
     }`,
     { limit }
   );
@@ -282,13 +301,13 @@ export async function getArticlesFromSanity(limit?: number): Promise<Article[]> 
       category: string;
       excerpt: string;
       content: unknown;
-      image?: string | null;
+      image?: SanityImageSource;
       publishedAt: string;
       order?: number;
       featured?: boolean;
       homepageOrder?: number;
     }>
-  >(`*[_type == "article"] | order(publishedAt desc) { _id, slug, title, category, excerpt, content, ${articleImageProjection}, publishedAt, order, featured, homepageOrder }`);
+  >(`*[_type == "article"] | order(publishedAt desc) { _id, slug, title, category, excerpt, content, ${articleImageSelect}, publishedAt, order, featured, homepageOrder }`);
   const mapped = list.map((a) => mapArticleFromSanity(a, undefined));
   return limit ? mapped.slice(0, limit) : mapped;
 }
@@ -301,7 +320,7 @@ function mapArticleFromSanity(
     category: string;
     excerpt: string;
     content: unknown;
-    image?: string | null;
+    image?: SanityImageSource;
     publishedAt: string;
     order?: number;
     featured?: boolean;
@@ -310,6 +329,7 @@ function mapArticleFromSanity(
   relatedProducts?: Product[]
 ): Article {
   const content: Article["content"] = Array.isArray(a.content) ? (a.content as PortableTextBlock[]) : (a.content as string) ?? "";
+  const imageUrl = typeof a.image === "string" && a.image.startsWith("http") ? a.image : urlFor(a.image as { _type?: string; asset?: { _ref: string } } | undefined);
   return {
     id: a._id,
     slug: a.slug?.current ?? a._id,
@@ -317,7 +337,7 @@ function mapArticleFromSanity(
     category: a.category,
     excerpt: a.excerpt,
     content,
-    image: a.image && a.image.startsWith("http") ? a.image : "/images/placeholder.svg",
+    image: imageUrl || "/images/placeholder.svg",
     publishedAt: a.publishedAt,
     order: a.order,
     featured: a.featured,
@@ -376,7 +396,7 @@ export async function getArticleBySlugFromSanity(slug: string): Promise<Article 
       category: string;
       excerpt: string;
       content: unknown;
-      image?: string | null;
+      image?: SanityImageSource;
       publishedAt: string;
       order?: number;
       featured?: boolean;
@@ -403,7 +423,7 @@ export async function getArticleBySlugFromSanity(slug: string): Promise<Article 
     } | null
   >(
     `*[_type == "article" && slug.current == $slug][0]{
-      _id, slug, title, category, excerpt, content, ${articleImageProjection}, publishedAt, order, featured, homepageOrder,
+      _id, slug, title, category, excerpt, content, ${articleImageSelect}, publishedAt, order, featured, homepageOrder,
       "relatedProducts": relatedProducts[]->{ _id, slug, name, nameEn, "category": category->{ "slug": slug }, price, originalPrice, description, descriptionShort, ingredients, sizes, "image": image.asset->url, buyUrl, order, featured, homepageOrder, stockStatus }
     }`,
     { slug }

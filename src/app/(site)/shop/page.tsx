@@ -17,13 +17,13 @@ function normalizeCategory(param: string | string[] | undefined): string | undef
 
 export default async function ShopPage({ searchParams }: Props) {
   const params = await searchParams;
-  const categoryParam = normalizeCategory(params.category);
+  const categoryParam = normalizeCategory(params.category)?.trim();
   const categories = await getCategories();
-  const validSlugs = new Set(categories.map((c) => c.slug));
+  const slugByLower = new Map(categories.map((c) => [c.slug.toLowerCase(), c.slug]));
   const categorySlug =
-    categoryParam && (categoryParam === "all" || validSlugs.has(categoryParam))
-      ? categoryParam
-      : "all";
+    categoryParam === "all" || !categoryParam
+      ? "all"
+      : slugByLower.get(categoryParam.toLowerCase()) ?? "all";
   const products = await getProducts(categorySlug === "all" ? undefined : categorySlug);
 
   return (

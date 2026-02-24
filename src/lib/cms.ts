@@ -31,8 +31,12 @@ const localCategories = categoriesData as ProductCategoryItem[];
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   if (isSanityConfigured()) {
-    const fromSanity = await getSiteSettingsFromSanity();
-    if (fromSanity) return fromSanity;
+    try {
+      const fromSanity = await getSiteSettingsFromSanity();
+      if (fromSanity) return fromSanity;
+    } catch {
+      // Sanity 連線錯誤時改用本地設定，避免整站崩潰
+    }
   }
   return localSettings;
 }
