@@ -67,6 +67,43 @@ export const categorySettings = defineType({
   ],
 });
 
+/**
+ * 首頁精選（singleton）：統一管理首頁精選產品與文章，拖曳排序
+ */
+export const homepageFeatured = defineType({
+  name: "homepageFeatured",
+  title: "首頁精選",
+  type: "document",
+  fields: [
+    defineField({
+      name: "featuredProducts",
+      title: "精選產品",
+      type: "array",
+      description: "首頁『Selected Products』區塊顯示的產品。最多 4 個，拖曳調整顯示順序。",
+      validation: (r) => r.max(4),
+      of: [
+        defineArrayMember({
+          type: "reference",
+          to: [{ type: "product" }],
+        }),
+      ],
+    }),
+    defineField({
+      name: "featuredArticles",
+      title: "精選文章",
+      type: "array",
+      description: "首頁『From the Journal』區塊顯示的文章。最多 4 個，拖曳調整顯示順序。",
+      validation: (r) => r.max(4),
+      of: [
+        defineArrayMember({
+          type: "reference",
+          to: [{ type: "article" }],
+        }),
+      ],
+    }),
+  ],
+});
+
 export const product = defineType({
   name: "product",
   title: "產品",
@@ -150,19 +187,6 @@ export const product = defineType({
       title: "購買連結（外部電商）",
       type: "url",
       description: "導向外部電商或購物車的 URL，產品頁「前往購買」按鈕會連到此處",
-    }),
-    defineField({
-      name: "featured",
-      title: "首頁精選 (Selected Products)",
-      type: "boolean",
-      description: "勾選後會出現在首頁「Selected Products」區塊",
-      initialValue: false,
-    }),
-    defineField({
-      name: "homepageOrder",
-      title: "首頁精選排序",
-      type: "number",
-      description: "數字愈小愈前面顯示，可留空",
     }),
     defineField({
       name: "stockStatus",
@@ -263,19 +287,6 @@ export const article = defineType({
       title: "排序（選填）",
       type: "number",
       description: "同一天有多篇文章時，可用此欄位微調排序，數字愈小愈前面",
-    }),
-    defineField({
-      name: "featured",
-      title: "首頁精選 (From the Journal)",
-      type: "boolean",
-      description: "勾選後會出現在首頁「From the Journal」區塊",
-      initialValue: false,
-    }),
-    defineField({
-      name: "homepageOrder",
-      title: "首頁精選排序",
-      type: "number",
-      description: "數字愈小愈前面顯示",
     }),
     defineField({
       name: "relatedProducts",

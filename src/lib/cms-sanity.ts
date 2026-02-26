@@ -229,8 +229,8 @@ export async function getProductsFromSanity(categorySlug?: string): Promise<Prod
   return all.filter((p) => categorySlugMatches(p.category, selectedSlug));
 }
 
-/** 首頁 Selected Products：只回傳有勾選「首頁精選」的產品，依 homepageOrder 排序 */
-export async function getFeaturedProductsFromSanity(limit = 8): Promise<Product[]> {
+/** 首頁 Selected Products：從 homepageFeatured 文件的 featuredProducts 陣列取得，依拖曳順序顯示 */
+export async function getFeaturedProductsFromSanity(limit = 4): Promise<Product[]> {
   if (!isSanityConfigured()) return [];
   const list = await getClient().fetch<
     Array<{
@@ -247,35 +247,18 @@ export async function getFeaturedProductsFromSanity(limit = 8): Promise<Product[
       sizes?: string[];
       image?: string | null;
       buyUrl?: string;
-      featured?: boolean;
-      homepageOrder?: number;
       stockStatus?: string;
-    }>
+    } | null>
   >(
-    `*[_type == "product" && featured == true] | order(homepageOrder asc, _createdAt asc) [0...$limit] {
+    `*[_type == "homepageFeatured"][0].featuredProducts[0...$limit]->{
       _id, slug, name, nameEn, category,
-      price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, featured, homepageOrder, stockStatus
+      price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, stockStatus
     }`,
-    { limit }
+    { limit: limit - 1 }
   );
-  return list.map((p) => ({
-    id: p._id,
-    slug: p.slug?.current ?? p._id,
-    name: p.name,
-    nameEn: p.nameEn,
-    category: safeCategorySlug(p.category),
-    price: p.price,
-    originalPrice: p.originalPrice,
-    description: p.description,
-    descriptionShort: p.descriptionShort,
-    ingredients: p.ingredients,
-    sizes: p.sizes,
-    image: p.image && p.image.startsWith("http") ? p.image : "/images/placeholder.svg",
-    buyUrl: p.buyUrl,
-    featured: p.featured,
-    homepageOrder: p.homepageOrder,
-    stockStatus: p.stockStatus === "in_stock" || p.stockStatus === "out_of_stock" || p.stockStatus === "preorder" ? p.stockStatus : undefined,
-  }));
+  return (list ?? [])
+    .filter((p): p is NonNullable<typeof p> => p != null)
+    .map((p) => mapSanityProductToProduct(p));
 }
 
 const productGalleryProjection = '"gallery": gallery[] { _type, "url": asset->url }';
@@ -386,7 +369,8 @@ export async function getRelatedProductsFromSanity(
 }
 
 /** 首頁 From the Journal：只回傳有勾選精選的文章 */
-export async function getFeaturedArticlesFromSanity(limit = 6): Promise<Article[]> {
+/** 首頁 From the Journal：從 homepageFeatured 文件的 featuredArticles 陣列取得，依拖曳順序顯示 */
+export async function getFeaturedArticlesFromSanity(limit = 4): Promise<Article[]> {
   if (!isSanityConfigured()) return [];
   const list = await getClient().fetch<
     Array<{
@@ -399,16 +383,16 @@ export async function getFeaturedArticlesFromSanity(limit = 6): Promise<Article[
       image?: SanityImageSource;
       publishedAt: string;
       order?: number;
-      featured?: boolean;
-      homepageOrder?: number;
-    }>
+    } | null>
   >(
-    `*[_type == "article" && featured == true] | order(homepageOrder asc, publishedAt desc) [0...$limit] {
-      _id, slug, title, category, excerpt, content, ${articleImageSelect}, publishedAt, order, featured, homepageOrder
+    `*[_type == "homepageFeatured"][0].featuredArticles[0...$limit]->{
+      _id, slug, title, category, excerpt, content, ${articleImageSelect}, publishedAt, order
     }`,
-    { limit }
+    { limit: limit - 1 }
   );
-  return list.map((a) => mapArticleFromSanity(a, undefined));
+  return (list ?? [])
+    .filter((a): a is NonNullable<typeof a> => a != null)
+    .map((a) => mapArticleFromSanity(a, undefined));
 }
 
 export async function getArticlesFromSanity(limit?: number): Promise<Article[]> {
