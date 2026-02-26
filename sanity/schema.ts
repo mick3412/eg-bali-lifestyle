@@ -3,6 +3,69 @@
  * 在 Sanity Studio 中可編輯產品、文章、關於我們、網站設定
  */
 import { defineType, defineField, defineArrayMember } from "sanity";
+import { ProductCategorySelect, ArticleCategorySelect } from "../src/studio/components/CategorySelect";
+
+/**
+ * 分類設定（singleton）：在「分類設定」頁統一管理產品與文章分類
+ * 無需建立多個文件，只需一個文件即可
+ */
+export const categorySettings = defineType({
+  name: "categorySettings",
+  title: "分類設定",
+  type: "document",
+  fields: [
+    defineField({
+      name: "productCategories",
+      title: "產品分類",
+      type: "array",
+      description: "Shop 導覽列的分類列表。可新增、刪除、拖曳排序。名稱即為分類識別碼（產品選單中顯示的選項）。",
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "productCategoryItem",
+          fields: [
+            {
+              name: "name",
+              title: "分類名稱",
+              type: "string",
+              description: "例如：Skincare、Body Care、旅遊。產品選單中會出現此名稱。",
+              validation: (r) => r.required(),
+            },
+          ],
+          preview: {
+            select: { name: "name" },
+            prepare: ({ name }) => ({ title: name || "（未命名）" }),
+          },
+        }),
+      ],
+    }),
+    defineField({
+      name: "articleCategories",
+      title: "文章分類",
+      type: "array",
+      description: "Journal 導覽列的分類列表。可新增、刪除、拖曳排序。名稱須與文章的分類欄位完全一致（大小寫相符）。",
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "articleCategoryItem",
+          fields: [
+            {
+              name: "name",
+              title: "分類名稱",
+              type: "string",
+              description: "例如：FOOD、旅遊。文章選單中會出現此名稱。",
+              validation: (r) => r.required(),
+            },
+          ],
+          preview: {
+            select: { name: "name" },
+            prepare: ({ name }) => ({ title: name || "（未命名）" }),
+          },
+        }),
+      ],
+    }),
+  ],
+});
 
 export const product = defineType({
   name: "product",
@@ -21,10 +84,11 @@ export const product = defineType({
     }),
     defineField({
       name: "category",
-      title: "產品分類（Slug）",
+      title: "產品分類",
       type: "string",
-      description: "填入分類代碼（需與網站設定 → 產品分類中的 Slug 一致，例如 skincare）",
+      description: "請先在「分類設定」建立分類，再從下拉選單選擇。",
       validation: (r) => r.required(),
+      components: { input: ProductCategorySelect },
     }),
     defineField({
       name: "price",
@@ -161,9 +225,10 @@ export const article = defineType({
     }),
     defineField({
       name: "category",
-      title: "分類（文字）",
+      title: "文章分類",
       type: "string",
-      description: "文章分類名稱，會顯示在卡片與文章頁上方，可自由輸入文字",
+      description: "請先在「分類設定」建立分類，再從下拉選單選擇。",
+      components: { input: ArticleCategorySelect },
     }),
     defineField({
       name: "excerpt",
@@ -339,63 +404,6 @@ export const siteSettings = defineType({
       title: "首頁區塊標題：Follow for More",
       type: "string",
       description: "首頁 Instagram 區塊的標題，留空則顯示「Follow for More」",
-    }),
-    defineField({
-      name: "productCategories",
-      title: "產品分類",
-      type: "array",
-      description: "Shop 頁面的分類導覽列表。可新增、刪除、拖曳調整顯示順序。Slug 為網址用英文代碼，需與產品的分類欄位一致。",
-      of: [
-        defineArrayMember({
-          type: "object",
-          name: "productCategoryItem",
-          fields: [
-            {
-              name: "slug",
-              title: "Slug（網址代碼）",
-              type: "string",
-              description: "英文小寫，例如 skincare、body-care",
-              validation: (r) => r.required(),
-            },
-            {
-              name: "name",
-              title: "顯示名稱",
-              type: "string",
-              description: "前台顯示文字，例如 Skincare",
-              validation: (r) => r.required(),
-            },
-          ],
-          preview: {
-            select: { name: "name", slug: "slug" },
-            prepare: ({ name, slug }) => ({ title: name || "（未命名）", subtitle: slug }),
-          },
-        }),
-      ],
-    }),
-    defineField({
-      name: "articleCategories",
-      title: "文章分類",
-      type: "array",
-      description: "Journal 頁面的分類導覽列表。可新增、刪除、拖曳調整顯示順序。名稱需與文章的分類欄位完全一致（大小寫須相符）。",
-      of: [
-        defineArrayMember({
-          type: "object",
-          name: "articleCategoryItem",
-          fields: [
-            {
-              name: "name",
-              title: "分類名稱",
-              type: "string",
-              description: "例如：FOOD、旅遊（須與文章的分類欄位完全一致）",
-              validation: (r) => r.required(),
-            },
-          ],
-          preview: {
-            select: { name: "name" },
-            prepare: ({ name }) => ({ title: name || "（未命名）" }),
-          },
-        }),
-      ],
     }),
     defineField({ name: "email", title: "聯絡 Email", type: "string" }),
     defineField({

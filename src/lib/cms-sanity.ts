@@ -38,8 +38,6 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     selectedProductsTitle?: string;
     selectedJournalTitle?: string;
     followForMoreTitle?: string;
-    productCategories?: Array<{ slug?: string; name?: string } | null>;
-    articleCategories?: Array<{ name?: string } | null>;
     email?: string;
     instagramHandle?: string;
     instagramUrl?: string;
@@ -51,8 +49,6 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
   } | null>(
     `*[_type == "siteSettings"][0] {
       siteName, tagline, taglineLong, selectedProductsTitle, selectedJournalTitle, followForMoreTitle,
-      "productCategories": productCategories[] { slug, name },
-      "articleCategories": articleCategories[] { name },
       email, instagramHandle, instagramUrl,
       "instagramPosts": instagramPosts[] {
         "imageUrl": image.asset->url,
@@ -78,12 +74,8 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
       .filter((p): p is { imageUrl: string; url: string } => !!p.imageUrl && !!p.url && p.imageUrl.startsWith("http") && p.url.startsWith("http"))
       .slice(0, 4)
       .map((p) => ({ imageUrl: p.imageUrl, link: p.url }));
-  const productCategories = (doc.productCategories ?? [])
-    .filter((c): c is { slug: string; name: string } => !!c && typeof c.slug === "string" && c.slug.trim().length > 0 && typeof c.name === "string" && c.name.trim().length > 0)
-    .map((c) => ({ slug: c.slug.trim(), name: c.name.trim() }));
-  const articleCategories = (doc.articleCategories ?? [])
-    .filter((c): c is { name: string } => !!c && typeof c.name === "string" && c.name.trim().length > 0)
-    .map((c) => ({ name: c.name.trim() }));
+  const productCategories = undefined;
+  const articleCategories = undefined;
   return {
     bannerImages: bannerImages.length > 0 ? bannerImages : undefined,
     siteName: doc.siteName ?? "Eg. Bali Lifestyle",
@@ -92,8 +84,6 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     selectedProductsTitle: doc.selectedProductsTitle?.trim() || undefined,
     selectedJournalTitle: doc.selectedJournalTitle?.trim() || undefined,
     followForMoreTitle: doc.followForMoreTitle?.trim() || undefined,
-    productCategories: productCategories.length > 0 ? productCategories : undefined,
-    articleCategories: articleCategories.length > 0 ? articleCategories : undefined,
     email: doc.email ?? "",
     instagramHandle: doc.instagramHandle ?? "",
     instagramUrl: doc.instagramUrl ?? "",
@@ -117,11 +107,11 @@ export async function getTypographyFromSanity(): Promise<TypographySettings | nu
   };
 }
 
-/** 取得文章分類列表（從 siteSettings.articleCategories 陣列，依拖曳順序） */
+/** 取得文章分類列表（從 categorySettings 陰列，依拖曳順序） */
 export async function getArticleCategoriesFromSanity(): Promise<{ id: string; name: string; order?: number }[]> {
   if (!isSanityConfigured()) return [];
   const doc = await getClient().fetch<{ articleCategories?: Array<{ _key?: string; name?: string } | null> } | null>(
-    `*[_type == "siteSettings"][0] { "articleCategories": articleCategories[] { _key, name } }`
+    `*[_type == "categorySettings"][0] { "articleCategories": articleCategories[] { _key, name } }`
   );
   const list = doc?.articleCategories ?? [];
   return list
@@ -129,16 +119,16 @@ export async function getArticleCategoriesFromSanity(): Promise<{ id: string; na
     .map((c, i) => ({ id: c._key ?? String(i), name: c.name.trim(), order: i }));
 }
 
-/** 取得產品分類列表（從 siteSettings.productCategories 陣列，依拖曳順序） */
+/** 取得產品分類列表（從 categorySettings 陰列，依拖曳順序） */
 export async function getCategoriesFromSanity(): Promise<ProductCategoryItem[]> {
   if (!isSanityConfigured()) return [];
-  const doc = await getClient().fetch<{ productCategories?: Array<{ _key?: string; slug?: string; name?: string } | null> } | null>(
-    `*[_type == "siteSettings"][0] { "productCategories": productCategories[] { _key, slug, name } }`
+  const doc = await getClient().fetch<{ productCategories?: Array<{ _key?: string; name?: string } | null> } | null>(
+    `*[_type == "categorySettings"][0] { "productCategories": productCategories[] { _key, name } }`
   );
   const list = doc?.productCategories ?? [];
   return list
-    .filter((c): c is { _key: string; slug: string; name: string } => !!c && typeof c.slug === "string" && c.slug.trim().length > 0 && typeof c.name === "string" && c.name.trim().length > 0)
-    .map((c, i) => ({ id: c._key ?? String(i), slug: c.slug.trim(), name: c.name.trim(), order: i }));
+    .filter((c): c is { _key: string; name: string } => !!c && typeof c.name === "string" && c.name.trim().length > 0)
+    .map((c, i) => ({ id: c._key ?? String(i), slug: c.name.trim(), name: c.name.trim(), order: i }));
 }
 
 /** 安全取得分類 slug：相容新版（string）與舊版存檔（reference object） */
