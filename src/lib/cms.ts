@@ -73,9 +73,9 @@ async function getCategoriesUncached(): Promise<ProductCategoryItem[]> {
 export const getCategories = cache(getCategoriesUncached);
 
 /**
- * 取得 Journal 文章分類列表（已依 order 排序）
- * - 優先使用 Sanity `articleCategory` 文件（在 Studio「文章分類」中管理）
- * - 若尚未建立任何分類文件，則 fallback：從文章推導 + journalCategoryOrder 排序
+ * 取得 Journal 文章分類列表（已依拖曳順序排列）
+ * - 優先使用 Sanity siteSettings.articleCategories 陣列（網站設定中拖曳管理）
+ * - 若尚未建立任何分類，則 fallback：從文章推導
  */
 async function getArticleCategoriesUncached(): Promise<string[]> {
   if (isSanityConfigured()) {
@@ -86,25 +86,14 @@ async function getArticleCategoriesUncached(): Promise<string[]> {
       // Sanity 連線失敗時 fallback
     }
   }
-  // Fallback：從現有文章推導分類 + journalCategoryOrder 排序
-  const [articles, settings] = await Promise.all([getArticles(), getSiteSettings()]);
+  // Fallback：從現有文章推導分類（依字母排序）
+  const articles = await getArticles();
   const set = new Set<string>();
   for (const a of articles) {
     const c = (a.category ?? "").trim();
     if (c) set.add(c);
   }
-  const unique = Array.from(set);
-  const order = settings.journalCategoryOrder;
-  if (!order || order.length === 0) return unique.sort((a, b) => a.localeCompare(b));
-  const normalized = order.map((o) => o.trim().toLowerCase());
-  return unique.sort((a, b) => {
-    const ia = normalized.findIndex((o) => o === a.trim().toLowerCase());
-    const ib = normalized.findIndex((o) => o === b.trim().toLowerCase());
-    if (ia === -1 && ib === -1) return a.localeCompare(b);
-    if (ia === -1) return 1;
-    if (ib === -1) return -1;
-    return ia - ib;
-  });
+  return Array.from(set).sort((a, b) => a.localeCompare(b));
 }
 
 export const getArticleCategories = cache(getArticleCategoriesUncached);

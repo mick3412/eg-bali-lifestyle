@@ -4,62 +4,6 @@
  */
 import { defineType, defineField, defineArrayMember } from "sanity";
 
-/** 文章子分類：在 Studio 可新增/編輯/排序，Journal 頁導覽依此列表顯示 */
-export const articleCategory = defineType({
-  name: "articleCategory",
-  title: "文章分類",
-  type: "document",
-  fields: [
-    defineField({
-      name: "name",
-      title: "分類名稱",
-      type: "string",
-      description: "前台顯示於 Journal 分類導覽，例如：FOOD、旅遊，需與文章的分類欄位完全一致",
-      validation: (r) => r.required(),
-    }),
-    defineField({
-      name: "order",
-      title: "顯示順序",
-      type: "number",
-      description: "數字愈小愈前面，留空則依名稱排序",
-    }),
-  ],
-  preview: {
-    select: { name: "name", order: "order" },
-    prepare: ({ name, order }) => ({ title: name, subtitle: order != null ? `順序：${order}` : "（未設定順序）" }),
-  },
-});
-
-/** 產品子分類：在 Studio 可新增/編輯，Shop 頁導覽與篩選依此列表 */
-export const productCategory = defineType({
-  name: "productCategory",
-  title: "產品分類",
-  type: "document",
-  fields: [
-    defineField({
-      name: "slug",
-      title: "分類代碼（Slug）",
-      type: "slug",
-      description: "網址用英文代碼，例如 skincare、body-care",
-      options: { source: "name" },
-      validation: (r) => r.required(),
-    }),
-    defineField({
-      name: "name",
-      title: "顯示名稱",
-      type: "string",
-      description: "前台顯示於 Shop 分類導覽，例如：Skincare",
-      validation: (r) => r.required(),
-    }),
-    defineField({
-      name: "order",
-      title: "顯示順序",
-      type: "number",
-      description: "數字愈小愈前面，留空則依建立時間排序",
-    }),
-  ],
-});
-
 export const product = defineType({
   name: "product",
   title: "產品",
@@ -77,9 +21,9 @@ export const product = defineType({
     }),
     defineField({
       name: "category",
-      title: "產品分類",
-      type: "reference",
-      to: [{ type: "productCategory" }],
+      title: "產品分類（Slug）",
+      type: "string",
+      description: "填入分類代碼（需與網站設定 → 產品分類中的 Slug 一致，例如 skincare）",
       validation: (r) => r.required(),
     }),
     defineField({
@@ -397,11 +341,61 @@ export const siteSettings = defineType({
       description: "首頁 Instagram 區塊的標題，留空則顯示「Follow for More」",
     }),
     defineField({
-      name: "journalCategoryOrder",
-      title: "Journal 子分類顯示順序",
+      name: "productCategories",
+      title: "產品分類",
       type: "array",
-      description: "Journal 頁面上方分類捲軸的顯示順序。依序填入分類名稱（需與文章的分類欄位完全一致，例如 FOOD、旅遊），拖曳可調整順序；未列出的分類會排在後面。留空則依字母排序。",
-      of: [{ type: "string" }],
+      description: "Shop 頁面的分類導覽列表。可新增、刪除、拖曳調整顯示順序。Slug 為網址用英文代碼，需與產品的分類欄位一致。",
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "productCategoryItem",
+          fields: [
+            {
+              name: "slug",
+              title: "Slug（網址代碼）",
+              type: "string",
+              description: "英文小寫，例如 skincare、body-care",
+              validation: (r) => r.required(),
+            },
+            {
+              name: "name",
+              title: "顯示名稱",
+              type: "string",
+              description: "前台顯示文字，例如 Skincare",
+              validation: (r) => r.required(),
+            },
+          ],
+          preview: {
+            select: { name: "name", slug: "slug" },
+            prepare: ({ name, slug }) => ({ title: name || "（未命名）", subtitle: slug }),
+          },
+        }),
+      ],
+    }),
+    defineField({
+      name: "articleCategories",
+      title: "文章分類",
+      type: "array",
+      description: "Journal 頁面的分類導覽列表。可新增、刪除、拖曳調整顯示順序。名稱需與文章的分類欄位完全一致（大小寫須相符）。",
+      of: [
+        defineArrayMember({
+          type: "object",
+          name: "articleCategoryItem",
+          fields: [
+            {
+              name: "name",
+              title: "分類名稱",
+              type: "string",
+              description: "例如：FOOD、旅遊（須與文章的分類欄位完全一致）",
+              validation: (r) => r.required(),
+            },
+          ],
+          preview: {
+            select: { name: "name" },
+            prepare: ({ name }) => ({ title: name || "（未命名）" }),
+          },
+        }),
+      ],
     }),
     defineField({ name: "email", title: "聯絡 Email", type: "string" }),
     defineField({
