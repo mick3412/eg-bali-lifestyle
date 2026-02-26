@@ -29,7 +29,7 @@ export default async function ProductPage({ params }: Props) {
 
   const [related, categoryName, categories] = await Promise.all([
     getRelatedProducts(product, 4),
-    getCategoryName(product.category),
+    getCategoryName(product.category?.[0] || ""),
     getCategories(),
   ]);
 
@@ -47,7 +47,7 @@ export default async function ProductPage({ params }: Props) {
         <span className="mx-1">/</span>
         <span className="text-foreground">{(product.name?.trim() || product.nameEn) ?? product.name}</span>
       </nav>
-      <ShopCategoryNav categories={categories} currentCategory={product.category} />
+      <ShopCategoryNav categories={categories} currentCategory={product.category?.[0] || ""} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 mt-8">
         <ProductGallery items={galleryItems} alt={(product.name?.trim() || product.nameEn) ?? product.name ?? ""} />

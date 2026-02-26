@@ -132,17 +132,22 @@ export async function getCategoriesFromSanity(): Promise<ProductCategoryItem[]> 
 }
 
 /** 安全取得分類 slug：相容新版（string）與舊版存檔（reference object） */
-function safeCategorySlug(category: unknown): string {
-  if (typeof category === "string") return category.trim();
+function safeCategoryArray(category: unknown): string[] {
+  if (Array.isArray(category)) {
+    return category.filter((c) => typeof c === "string").map((c) => c.trim());
+  }
+  if (typeof category === "string") {
+    const trimmed = category.trim();
+    return trimmed ? [trimmed] : [];
+  }
   if (category && typeof category === "object") {
-    // 舊版 reference: {_type:"reference", _ref:"..."} — 無法解析，回傳空字串
-    // 舊版展開後: {slug:{current:"..."}} — 嘗試取 slug
     const cat = category as Record<string, unknown>;
     if (cat.slug && typeof (cat.slug as Record<string, unknown>).current === "string") {
-      return ((cat.slug as Record<string, unknown>).current as string).trim();
+      const slugStr = ((cat.slug as Record<string, unknown>).current as string).trim();
+      return slugStr ? [slugStr] : [];
     }
   }
-  return "";
+  return [];
 }
 
 function mapSanityProductToProduct(p: {
@@ -168,7 +173,7 @@ function mapSanityProductToProduct(p: {
     slug: p.slug?.current ?? p._id,
     name: p.name,
     nameEn: p.nameEn,
-    category: safeCategorySlug(p.category),
+    category: safeCategoryArray(p.category),
     price: p.price,
     originalPrice: p.originalPrice,
     description: p.description,
@@ -189,10 +194,10 @@ const productListProjection = `{
   price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, featured, homepageOrder, stockStatus
 }`;
 
-function categorySlugMatches(productCategory: string, selectedSlug: string): boolean {
-  const a = (productCategory ?? "").trim().toLowerCase();
-  const b = (selectedSlug ?? "").trim().toLowerCase();
-  return a.length > 0 && b.length > 0 && a === b;
+function categoryArrayIncludes(productCategories: string[], selectedSlug: string): boolean {
+  if (!productCategories || productCategories.length === 0) return false;
+  const target = (selectedSlug ?? "").trim().toLowerCase();
+  return target.length > 0 && productCategories.some(c => c.trim().toLowerCase() === target);
 }
 
 export async function getProductsFromSanity(categorySlug?: string): Promise<Product[]> {
@@ -207,7 +212,7 @@ export async function getProductsFromSanity(categorySlug?: string): Promise<Prod
       slug: { current: string };
       name: string;
       nameEn?: string;
-      category?: string | null;
+      category?: unknown;
       price: number;
       originalPrice?: number;
       description: string;
@@ -226,7 +231,7 @@ export async function getProductsFromSanity(categorySlug?: string): Promise<Prod
 
   if (!selectedSlug) return all;
 
-  return all.filter((p) => categorySlugMatches(p.category, selectedSlug));
+  return all.filter((p) => categoryArrayIncludes(p.category, selectedSlug));
 }
 
 /** 首頁 Selected Products：從 homepageFeatured 文件的 featuredProducts 陣列取得，依拖曳順序顯示 */
@@ -238,7 +243,7 @@ export async function getFeaturedProductsFromSanity(limit = 4): Promise<Product[
       slug: { current: string };
       name: string;
       nameEn?: string;
-      category?: string | null;
+      category?: unknown;
       price: number;
       originalPrice?: number;
       description: string;
@@ -299,7 +304,7 @@ export async function getProductBySlugFromSanity(slug: string): Promise<Product 
     slug: p.slug?.current ?? p._id,
     name: p.name,
     nameEn: p.nameEn,
-    category: safeCategorySlug(p.category),
+    category: safeCategoryArray(p.category),
     price: p.price,
     originalPrice: p.originalPrice,
     description: p.description,
@@ -328,7 +333,7 @@ export async function getRelatedProductsFromSanity(
       slug: { current: string };
       name: string;
       nameEn?: string;
-      category?: string | null;
+      category?: unknown;
       price: number;
       originalPrice?: number;
       description: string;
@@ -342,7 +347,7 @@ export async function getRelatedProductsFromSanity(
       stockStatus?: string;
     }>
   >(
-    `*[_type == "product" && _id != $excludeId && defined(category) && lower(category) == lower($categorySlug)] | order(_createdAt asc) [0...$limit] {
+    `*[_type == "product" && _id != $excludeId] | order(_createdAt asc) [0...$limit] {
       _id, slug, name, nameEn, category,
       price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, featured, homepageOrder, stockStatus
     }`,
@@ -353,7 +358,7 @@ export async function getRelatedProductsFromSanity(
     slug: p.slug?.current ?? p._id,
     name: p.name,
     nameEn: p.nameEn,
-    category: safeCategorySlug(p.category),
+    category: safeCategoryArray(p.category),
     price: p.price,
     originalPrice: p.originalPrice,
     description: p.description,
@@ -377,7 +382,7 @@ export async function getFeaturedArticlesFromSanity(limit = 4): Promise<Article[
       _id: string;
       slug: { current: string };
       title: string;
-      category: string;
+      category?: unknown;
       excerpt: string;
       content: unknown;
       image?: SanityImageSource;
@@ -402,7 +407,7 @@ export async function getArticlesFromSanity(limit?: number): Promise<Article[]> 
       _id: string;
       slug: { current: string };
       title: string;
-      category: string;
+      category?: unknown;
       excerpt: string;
       content: unknown;
       image?: SanityImageSource;
@@ -421,7 +426,7 @@ function mapArticleFromSanity(
     _id: string;
     slug: { current: string };
     title: string;
-    category: string;
+    category?: unknown;
     excerpt: string;
     content: unknown;
     image?: SanityImageSource;
@@ -438,7 +443,7 @@ function mapArticleFromSanity(
     id: a._id,
     slug: a.slug?.current ?? a._id,
     title: a.title,
-    category: a.category,
+    category: safeCategoryArray(a.category),
     excerpt: a.excerpt,
     content,
     image: imageUrl || "/images/placeholder.svg",
@@ -457,7 +462,7 @@ export async function getArticleBySlugFromSanity(slug: string): Promise<Article 
       _id: string;
       slug: { current: string };
       title: string;
-      category: string;
+      category?: unknown;
       excerpt: string;
       content: unknown;
       image?: SanityImageSource;
@@ -470,7 +475,7 @@ export async function getArticleBySlugFromSanity(slug: string): Promise<Article 
         slug: { current: string };
         name: string;
         nameEn?: string;
-        category?: string | null;
+        category?: unknown;
         price: number;
         originalPrice?: number;
         description: string;

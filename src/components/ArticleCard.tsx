@@ -24,7 +24,7 @@ export default function ArticleCard({ article, variant = "default" }: ArticleCar
             sizes="(max-width: 768px) 100vw, 1024px"
           />
         </div>
-        <p className="typo-cardMeta tracking-widest uppercase text-[var(--accent)] mb-1">{article.category}</p>
+        <p className="typo-cardMeta tracking-widest uppercase text-[var(--accent)] mb-1">{article.category.join(", ")}</p>
         <h2 className="typo-cardTitle font-semibold text-foreground group-hover:text-[var(--accent)] transition-colors">
           {article.title}
         </h2>
@@ -45,7 +45,7 @@ export default function ArticleCard({ article, variant = "default" }: ArticleCar
           sizes="(max-width: 768px) 100vw, 50vw"
         />
       </div>
-      <p className="typo-cardMeta tracking-widest uppercase text-[var(--accent)] mb-1">{article.category}</p>
+      <p className="typo-cardMeta tracking-widest uppercase text-[var(--accent)] mb-1">{article.category.join(", ")}</p>
       <h3 className="typo-cardTitle font-semibold text-foreground group-hover:text-[var(--accent)] transition-colors">
         {article.title}
       </h3>

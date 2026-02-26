@@ -22,9 +22,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           sizes="(max-width: 768px) 50vw, 33vw"
         />
       </div>
-      {product.category && (
+      {product.category && product.category.length > 0 && (
         <p className="typo-cardMeta tracking-widest uppercase text-[var(--accent)] mb-1">
-          {product.category}
+          {product.category.join(", ")}
         </p>
       )}
       <p className="typo-cardTitle font-medium text-foreground group-hover:text-[var(--accent)] transition-colors">

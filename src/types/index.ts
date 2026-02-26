@@ -16,8 +16,8 @@ export interface Product {
   slug: string;
   name: string;
   nameEn?: string;
-  /** 分類 slug，與 ProductCategoryItem.slug 對應 */
-  category: string;
+  /** 分類 slug，與 ProductCategoryItem.slug 對應（現支援多選） */
+  category: string[];
   price: number;
   originalPrice?: number;
   description: string;
@@ -44,7 +44,7 @@ export interface Article {
   id: string;
   slug: string;
   title: string;
-  category: string;
+  category: string[];
   excerpt: string;
   content: ArticleContent;
   image: string;

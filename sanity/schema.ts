@@ -128,8 +128,9 @@ export const product = defineType({
     defineField({
       name: "category",
       title: "產品分類",
-      type: "string",
-      description: "請先在「分類設定」建立分類，再從下拉選單選擇。",
+      type: "array",
+      of: [{ type: "string" }],
+      description: "請先在「分類設定」建立分類，再勾選適用的分類。",
       validation: (r) => r.required(),
       components: { input: ProductCategorySelect },
     }),
@@ -256,8 +257,9 @@ export const article = defineType({
     defineField({
       name: "category",
       title: "文章分類",
-      type: "string",
-      description: "請先在「分類設定」建立分類，再從下拉選單選擇。",
+      type: "array",
+      of: [{ type: "string" }],
+      description: "請先在「分類設定」建立分類，再勾選適用的分類。",
       components: { input: ArticleCategorySelect },
     }),
     defineField({

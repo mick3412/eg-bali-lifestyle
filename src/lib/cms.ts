@@ -27,8 +27,14 @@ import aboutData from "@/content/about.json";
 import categoriesData from "@/content/categories.json";
 
 const localSettings = settingsData as SiteSettings;
-const localProducts = productsData as Product[];
-const localArticles = articlesData as Article[];
+const localProducts = (productsData as any[]).map(p => ({
+  ...p,
+  category: typeof p.category === "string" ? [p.category] : p.category
+})) as Product[];
+const localArticles = (articlesData as any[]).map(a => ({
+  ...a,
+  category: typeof a.category === "string" ? [a.category] : a.category
+})) as Article[];
 const localAbout = aboutData as unknown as AboutContent;
 const localCategories = categoriesData as ProductCategoryItem[];
 
@@ -90,8 +96,11 @@ async function getArticleCategoriesUncached(): Promise<string[]> {
   const articles = await getArticles();
   const set = new Set<string>();
   for (const a of articles) {
-    const c = (a.category ?? "").trim();
-    if (c) set.add(c);
+    if (Array.isArray(a.category)) {
+      for (const c of a.category) {
+        if (c.trim()) set.add(c.trim());
+      }
+    }
   }
   return Array.from(set).sort((a, b) => a.localeCompare(b));
 }
@@ -115,7 +124,7 @@ async function getProductsUncached(categorySlug?: string): Promise<Product[]> {
   }
   const products = [...localProducts].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   if (!categorySlug || categorySlug === "all") return products;
-  return products.filter((p) => p.category === categorySlug);
+  return products.filter((p) => p.category?.some(c => c.toLowerCase() === categorySlug.toLowerCase()));
 }
 
 export const getProducts = cache(getProductsUncached);
@@ -142,7 +151,7 @@ export const getFeaturedProducts = cache(getFeaturedProductsUncached);
 export async function getRelatedProducts(product: Product, limit = 4): Promise<Product[]> {
   if (isSanityConfigured()) {
     try {
-      const list = await getRelatedProductsFromSanity(product.id, product.category, limit);
+      const list = await getRelatedProductsFromSanity(product.id, product.category?.[0] || "", limit);
       if (list.length > 0) return list;
     } catch {
       // fallback 下用全量篩選
@@ -150,7 +159,7 @@ export async function getRelatedProducts(product: Product, limit = 4): Promise<P
   }
   const all = await getProducts();
   return all
-    .filter((p) => p.id !== product.id && (p.category === product.category || Math.random() > 0.5))
+    .filter((p) => p.id !== product.id && (p.category?.some(c => product.category?.includes(c)) || Math.random() > 0.5))
     .slice(0, limit);
 }
 

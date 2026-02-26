@@ -26,8 +26,8 @@ export default async function JournalPage({ searchParams }: Props) {
   const filtered =
     !categoryParam || categoryParam === "all"
       ? allArticles
-      : allArticles.filter(
-        (a) => (a.category ?? "").trim().toLowerCase() === categoryParam.trim().toLowerCase()
+      : allArticles.filter((a) =>
+        a.category?.some(c => c.trim().toLowerCase() === categoryParam.trim().toLowerCase())
       );
 
   return (
