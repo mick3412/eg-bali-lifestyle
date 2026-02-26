@@ -4,6 +4,32 @@
  */
 import { defineType, defineField, defineArrayMember } from "sanity";
 
+/** 文章子分類：在 Studio 可新增/編輯/排序，Journal 頁導覽依此列表顯示 */
+export const articleCategory = defineType({
+  name: "articleCategory",
+  title: "文章分類",
+  type: "document",
+  fields: [
+    defineField({
+      name: "name",
+      title: "分類名稱",
+      type: "string",
+      description: "前台顯示於 Journal 分類導覽，例如：FOOD、旅遊，需與文章的分類欄位完全一致",
+      validation: (r) => r.required(),
+    }),
+    defineField({
+      name: "order",
+      title: "顯示順序",
+      type: "number",
+      description: "數字愈小愈前面，留空則依名稱排序",
+    }),
+  ],
+  preview: {
+    select: { name: "name", order: "order" },
+    prepare: ({ name, order }) => ({ title: name, subtitle: order != null ? `順序：${order}` : "（未設定順序）" }),
+  },
+});
+
 /** 產品子分類：在 Studio 可新增/編輯，Shop 頁導覽與篩選依此列表 */
 export const productCategory = defineType({
   name: "productCategory",

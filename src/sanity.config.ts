@@ -2,7 +2,7 @@
 
 import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
-import { productCategory, product, article, about, siteSettings, typographySettings } from "../sanity/schema";
+import { articleCategory, productCategory, product, article, about, siteSettings, typographySettings } from "../sanity/schema";
 import { PublishButton } from "./studio/actions/PublishButton";
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!;
@@ -14,7 +14,7 @@ export default defineConfig({
   dataset,
   plugins: [structureTool()],
   schema: {
-    types: [productCategory, product, article, about, siteSettings, typographySettings],
+    types: [articleCategory, productCategory, product, article, about, siteSettings, typographySettings],
   },
   document: {
     // 在預設操作前加入自訂「發布」按鈕，確保在文件編輯器底部顯示

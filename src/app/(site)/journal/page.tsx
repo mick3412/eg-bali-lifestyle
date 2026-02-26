@@ -1,4 +1,4 @@
-import { getArticles, getSiteSettings } from "@/lib/cms";
+import { getArticles, getArticleCategories } from "@/lib/cms";
 import ArticleCard from "@/components/ArticleCard";
 import JournalCategoryNav from "./JournalCategoryNav";
 
@@ -9,29 +9,6 @@ export const metadata = {
 
 /** 與首頁一致，定期向 Sanity 取最新文章列表 */
 export const revalidate = 60;
-
-function getUniqueCategories(articles: { category: string }[]): string[] {
-  const set = new Set<string>();
-  for (const a of articles) {
-    const c = (a.category ?? "").trim();
-    if (c) set.add(c);
-  }
-  return Array.from(set);
-}
-
-/** 依 CMS 設定的 journalCategoryOrder 排序；未在列表中的分類排在後面、依字母排序 */
-function sortCategoriesByOrder(categories: string[], order: string[] | undefined): string[] {
-  if (!order || order.length === 0) return [...categories].sort((a, b) => a.localeCompare(b));
-  const normalizedOrder = order.map((o) => o.trim().toLowerCase());
-  return [...categories].sort((a, b) => {
-    const ia = normalizedOrder.findIndex((o) => o === a.trim().toLowerCase());
-    const ib = normalizedOrder.findIndex((o) => o === b.trim().toLowerCase());
-    if (ia === -1 && ib === -1) return a.localeCompare(b);
-    if (ia === -1) return 1;
-    if (ib === -1) return -1;
-    return ia - ib;
-  });
-}
 
 type Props = { searchParams: Promise<{ category?: string | string[] }> };
 
@@ -44,16 +21,14 @@ function normalizeCategory(param: string | string[] | undefined): string | undef
 export default async function JournalPage({ searchParams }: Props) {
   const params = await searchParams;
   const categoryParam = normalizeCategory(params.category);
-  const [allArticles, settings] = await Promise.all([getArticles(), getSiteSettings()]);
-  const uniqueCategories = getUniqueCategories(allArticles);
-  const categories = sortCategoriesByOrder(uniqueCategories, settings.journalCategoryOrder);
+  const [allArticles, categories] = await Promise.all([getArticles(), getArticleCategories()]);
   const currentCategory = categoryParam ?? "all";
   const filtered =
     !categoryParam || categoryParam === "all"
       ? allArticles
       : allArticles.filter(
-          (a) => (a.category ?? "").trim().toLowerCase() === categoryParam.trim().toLowerCase()
-        );
+        (a) => (a.category ?? "").trim().toLowerCase() === categoryParam.trim().toLowerCase()
+      );
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-10 md:py-14">

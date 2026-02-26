@@ -107,6 +107,15 @@ export async function getTypographyFromSanity(): Promise<TypographySettings | nu
   };
 }
 
+/** 取得文章分類列表（Studio 可新增/編輯/排序） */
+export async function getArticleCategoriesFromSanity(): Promise<{ id: string; name: string; order?: number }[]> {
+  if (!isSanityConfigured()) return [];
+  const list = await getClient().fetch<
+    Array<{ _id: string; name: string; order?: number }>
+  >(`*[_type == "articleCategory"] | order(order asc, name asc) { _id, name, order }`);
+  return list.map((c) => ({ id: c._id, name: c.name.trim(), order: c.order }));
+}
+
 /** 取得產品分類列表（Studio 可新增/編輯） */
 export async function getCategoriesFromSanity(): Promise<ProductCategoryItem[]> {
   if (!isSanityConfigured()) return [];
