@@ -65,6 +65,9 @@ export const categorySettings = defineType({
       ],
     }),
   ],
+  preview: {
+    prepare: () => ({ title: "分類設定" }),
+  },
 });
 
 /**
@@ -102,6 +105,9 @@ export const homepageFeatured = defineType({
       ],
     }),
   ],
+  preview: {
+    prepare: () => ({ title: "首頁精選" }),
+  },
 });
 
 export const product = defineType({
