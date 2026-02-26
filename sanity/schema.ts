@@ -370,6 +370,13 @@ export const siteSettings = defineType({
       type: "string",
       description: "首頁 Instagram 區塊的標題，留空則顯示「Follow for More」",
     }),
+    defineField({
+      name: "journalCategoryOrder",
+      title: "Journal 子分類顯示順序",
+      type: "array",
+      description: "Journal 頁面上方分類捲軸的顯示順序。依序填入分類名稱（需與文章的分類欄位完全一致，例如 FOOD、旅遊），拖曳可調整順序；未列出的分類會排在後面。留空則依字母排序。",
+      of: [{ type: "string" }],
+    }),
     defineField({ name: "email", title: "聯絡 Email", type: "string" }),
     defineField({
       name: "instagramHandle",

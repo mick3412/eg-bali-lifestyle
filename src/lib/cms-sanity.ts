@@ -38,6 +38,7 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     selectedProductsTitle?: string;
     selectedJournalTitle?: string;
     followForMoreTitle?: string;
+    journalCategoryOrder?: string[];
     email?: string;
     instagramHandle?: string;
     instagramUrl?: string;
@@ -48,7 +49,7 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     bannerImages?: Array<{ url?: string; link?: string; alt?: string; order?: number }>;
   } | null>(
     `*[_type == "siteSettings"][0] {
-      siteName, tagline, taglineLong, selectedProductsTitle, selectedJournalTitle, followForMoreTitle,
+      siteName, tagline, taglineLong, selectedProductsTitle, selectedJournalTitle, followForMoreTitle, journalCategoryOrder,
       email, instagramHandle, instagramUrl,
       "instagramPosts": instagramPosts[] {
         "imageUrl": image.asset->url,
@@ -82,6 +83,7 @@ export async function getSiteSettingsFromSanity(): Promise<SiteSettings | null> 
     selectedProductsTitle: doc.selectedProductsTitle?.trim() || undefined,
     selectedJournalTitle: doc.selectedJournalTitle?.trim() || undefined,
     followForMoreTitle: doc.followForMoreTitle?.trim() || undefined,
+    journalCategoryOrder: (doc.journalCategoryOrder ?? []).filter((s): s is string => typeof s === "string" && s.trim().length > 0).map((s) => s.trim()),
     email: doc.email ?? "",
     instagramHandle: doc.instagramHandle ?? "",
     instagramUrl: doc.instagramUrl ?? "",

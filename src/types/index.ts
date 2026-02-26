@@ -111,6 +111,8 @@ export interface SiteSettings {
   selectedJournalTitle?: string;
   /** 首頁 Instagram 區塊標題，留空則用預設 "Follow for More" */
   followForMoreTitle?: string;
+  /** Journal 子分類在導覽中的顯示順序（名稱需與文章分類一致），未列出者排在後面 */
+  journalCategoryOrder?: string[];
   email: string;
   instagramHandle: string;
   instagramUrl: string;

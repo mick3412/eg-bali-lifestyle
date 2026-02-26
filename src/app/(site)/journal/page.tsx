@@ -1,4 +1,4 @@
-import { getArticles } from "@/lib/cms";
+import { getArticles, getSiteSettings } from "@/lib/cms";
 import ArticleCard from "@/components/ArticleCard";
 import JournalCategoryNav from "./JournalCategoryNav";
 
@@ -16,7 +16,21 @@ function getUniqueCategories(articles: { category: string }[]): string[] {
     const c = (a.category ?? "").trim();
     if (c) set.add(c);
   }
-  return Array.from(set).sort((a, b) => a.localeCompare(b));
+  return Array.from(set);
+}
+
+/** 依 CMS 設定的 journalCategoryOrder 排序；未在列表中的分類排在後面、依字母排序 */
+function sortCategoriesByOrder(categories: string[], order: string[] | undefined): string[] {
+  if (!order || order.length === 0) return [...categories].sort((a, b) => a.localeCompare(b));
+  const normalizedOrder = order.map((o) => o.trim().toLowerCase());
+  return [...categories].sort((a, b) => {
+    const ia = normalizedOrder.findIndex((o) => o === a.trim().toLowerCase());
+    const ib = normalizedOrder.findIndex((o) => o === b.trim().toLowerCase());
+    if (ia === -1 && ib === -1) return a.localeCompare(b);
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
 }
 
 type Props = { searchParams: Promise<{ category?: string | string[] }> };
@@ -30,8 +44,9 @@ function normalizeCategory(param: string | string[] | undefined): string | undef
 export default async function JournalPage({ searchParams }: Props) {
   const params = await searchParams;
   const categoryParam = normalizeCategory(params.category);
-  const allArticles = await getArticles();
-  const categories = getUniqueCategories(allArticles);
+  const [allArticles, settings] = await Promise.all([getArticles(), getSiteSettings()]);
+  const uniqueCategories = getUniqueCategories(allArticles);
+  const categories = sortCategoriesByOrder(uniqueCategories, settings.journalCategoryOrder);
   const currentCategory = categoryParam ?? "all";
   const filtered =
     !categoryParam || categoryParam === "all"
