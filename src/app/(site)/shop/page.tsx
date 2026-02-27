@@ -33,10 +33,8 @@ export default async function ShopPage({ searchParams }: Props) {
       ? "all"
       : slugByLower.get(categoryParam.toLowerCase()) ?? "all";
 
-  // Fetch products filtered by main category first
   const products = await getProducts(categorySlug === "all" ? undefined : categorySlug);
 
-  // Then filter by subcategory in JavaScript (avoids complex GROQ)
   const filtered = subParam
     ? products.filter((p) =>
       p.subcategory?.some((s) => s.toLowerCase() === subParam.toLowerCase())
@@ -45,22 +43,42 @@ export default async function ShopPage({ searchParams }: Props) {
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-10 md:py-14">
-      <h1 className="typo-sectionTitle font-semibold text-foreground mb-8">Shop</h1>
-      <ShopCategoryNav
-        categories={categories}
-        currentCategory={categorySlug}
-        currentSubcategory={subParam}
-      />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mt-8">
-        {filtered.length > 0 ? (
-          filtered.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))
-        ) : (
-          <p className="col-span-full typo-body text-[var(--muted)] text-center py-12">
-            暫無商品
-          </p>
-        )}
+      <h1 className="typo-sectionTitle font-semibold text-foreground mb-10">Shop</h1>
+
+      {/* Two-column layout: left sidebar + right product grid */}
+      <div className="flex gap-10 md:gap-14 items-start">
+        {/* Left sidebar */}
+        <aside className="hidden md:block shrink-0 w-36 sticky top-24">
+          <ShopCategoryNav
+            categories={categories}
+            currentCategory={categorySlug}
+            currentSubcategory={subParam}
+          />
+        </aside>
+
+        {/* Mobile: horizontal scrollable category nav */}
+        <div className="md:hidden w-full mb-6">
+          <ShopCategoryNav
+            categories={categories}
+            currentCategory={categorySlug}
+            currentSubcategory={subParam}
+          />
+        </div>
+
+        {/* Product grid */}
+        <div className="flex-1 min-w-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+            {filtered.length > 0 ? (
+              filtered.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))
+            ) : (
+              <p className="col-span-full typo-body text-[var(--muted)] text-center py-12">
+                暫無商品
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
