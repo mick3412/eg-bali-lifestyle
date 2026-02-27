@@ -46,9 +46,9 @@ export default async function ShopPage({ searchParams }: Props) {
       <h1 className="typo-sectionTitle font-semibold text-foreground mb-10">Shop</h1>
 
       {/* Two-column layout: left sidebar + right product grid */}
-      <div className="flex gap-10 md:gap-14 items-start">
+      <div className="flex gap-4 md:gap-14 items-start">
         {/* Left sidebar */}
-        <aside className="hidden md:block shrink-0 w-36 sticky top-24">
+        <aside className="shrink-0 w-[100px] md:w-36 sticky top-20 md:top-24">
           <ShopCategoryNav
             categories={categories}
             currentCategory={categorySlug}
@@ -56,18 +56,9 @@ export default async function ShopPage({ searchParams }: Props) {
           />
         </aside>
 
-        {/* Mobile: horizontal scrollable category nav */}
-        <div className="md:hidden w-full mb-6">
-          <ShopCategoryNav
-            categories={categories}
-            currentCategory={categorySlug}
-            currentSubcategory={subParam}
-          />
-        </div>
-
         {/* Product grid */}
         <div className="flex-1 min-w-0">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
             {filtered.length > 0 ? (
               filtered.map((product) => (
                 <ProductCard key={product.id} product={product} />

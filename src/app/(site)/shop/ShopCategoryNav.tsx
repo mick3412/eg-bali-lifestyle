@@ -13,13 +13,13 @@ export default function ShopCategoryNav({ categories, currentCategory, currentSu
   const isAll = currentCategory === "all" || !currentCategory;
 
   return (
-    <nav className="flex flex-col gap-1 min-w-[140px]">
+    <nav className="flex flex-col gap-1 w-full">
       {/* All Products */}
       <Link
         href="/shop"
         className={`typo-bodySmall tracking-widest uppercase py-1.5 transition-colors ${isAll
-            ? "text-foreground font-semibold"
-            : "text-[var(--muted)] hover:text-foreground"
+          ? "text-foreground font-semibold"
+          : "text-[var(--muted)] hover:text-foreground"
           }`}
       >
         All
@@ -35,8 +35,8 @@ export default function ShopCategoryNav({ categories, currentCategory, currentSu
             <Link
               href={`/shop?category=${encodeURIComponent(cat.slug)}`}
               className={`typo-bodySmall tracking-widest uppercase py-1.5 transition-colors ${isActive
-                  ? "text-foreground font-semibold"
-                  : "text-[var(--muted)] hover:text-foreground"
+                ? "text-foreground font-semibold"
+                : "text-[var(--muted)] hover:text-foreground"
                 }`}
             >
               {cat.name}
@@ -48,8 +48,8 @@ export default function ShopCategoryNav({ categories, currentCategory, currentSu
                 <Link
                   href={`/shop?category=${encodeURIComponent(cat.slug)}`}
                   className={`typo-caption tracking-wider uppercase py-1 transition-colors ${!currentSubcategory
-                      ? "text-foreground font-medium"
-                      : "text-[var(--muted)] hover:text-foreground"
+                    ? "text-foreground font-medium"
+                    : "text-[var(--muted)] hover:text-foreground"
                     }`}
                 >
                   全部
@@ -59,8 +59,8 @@ export default function ShopCategoryNav({ categories, currentCategory, currentSu
                     key={sub.id}
                     href={`/shop?category=${encodeURIComponent(cat.slug)}&sub=${encodeURIComponent(sub.slug)}`}
                     className={`typo-caption tracking-wider uppercase py-1 transition-colors ${currentSubcategory === sub.slug
-                        ? "text-foreground font-medium"
-                        : "text-[var(--muted)] hover:text-foreground"
+                      ? "text-foreground font-medium"
+                      : "text-[var(--muted)] hover:text-foreground"
                       }`}
                   >
                     {sub.name}
