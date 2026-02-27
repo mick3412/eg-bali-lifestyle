@@ -115,3 +115,96 @@ export function ProductCategorySelect(props: ArrayOfPrimitivesInputProps<string 
 export function ArticleCategorySelect(props: ArrayOfPrimitivesInputProps<string | number | boolean>) {
     return <CategorySelect {...(props as CategorySelectProps)} categoryType="article" />;
 }
+
+// ─── SubcategorySelect ─────────────────────────────────────────────────────
+
+interface SubcategoryItem { name: string; }
+interface ParentCategoryItem { name: string; subcategories?: SubcategoryItem[]; }
+
+function ProductSubcategorySelectInner(props: ArrayOfPrimitivesInputProps<string | number | boolean>) {
+    const { value = [], onChange, readOnly } = props as ArrayOfPrimitivesInputProps<string>;
+    const client = useClient({ apiVersion: "2024-01-01" });
+    // Read the selected main categories from the parent product document
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { useFormValue } = require("sanity") as { useFormValue: (path: string[]) => any };
+    const selectedMainCats: string[] = (useFormValue(["category"]) as string[]) ?? [];
+
+    const [allParentCats, setAllParentCats] = useState<ParentCategoryItem[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        setLoading(true);
+        client
+            .fetch<ParentCategoryItem[]>(
+                `*[_type == "categorySettings"][0].productCategories[]{ name, subcategories[]{ name } }`
+            )
+            .then((list) => {
+                setAllParentCats(list ?? []);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, [client]);
+
+    const availableSubs = allParentCats
+        .filter((p) => selectedMainCats.includes(p.name))
+        .flatMap((p) => p.subcategories ?? []);
+
+    const handleToggle = useCallback(
+        (subName: string) => {
+            if (readOnly) return;
+            const current = Array.isArray(value) ? (value as string[]) : [];
+            const next = current.includes(subName)
+                ? current.filter((v) => v !== subName)
+                : [...current, subName];
+            onChange(next.length > 0 ? set(next) : unset());
+        },
+        [value, readOnly, onChange]
+    );
+
+    if (loading) {
+        return <div style={{ padding: "8px 12px", color: "#888", fontSize: 13 }}>載入子分類中...</div>;
+    }
+
+    if (selectedMainCats.length === 0) {
+        return (
+            <div style={{ padding: "10px 12px", background: "rgba(0,100,255,0.06)", border: "1px solid rgba(0,100,255,0.2)", borderRadius: 4, color: "#aaa", fontSize: 13 }}>
+                請先選擇「主分類」，才能設定子分類。
+            </div>
+        );
+    }
+
+    if (availableSubs.length === 0) {
+        return (
+            <div style={{ padding: "10px 12px", background: "rgba(255,200,0,0.08)", border: "1px solid rgba(255,200,0,0.3)", borderRadius: 4, color: "#ccc", fontSize: 13 }}>
+                所選主分類尚未設定子分類。請至「分類設定」新增子分類。
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {availableSubs.map((sub) => {
+                const isChecked = Array.isArray(value) && (value as string[]).includes(sub.name);
+                return (
+                    <label
+                        key={sub.name}
+                        style={{ display: "flex", alignItems: "center", gap: 8, cursor: readOnly ? "default" : "pointer", opacity: readOnly ? 0.6 : 1 }}
+                    >
+                        <input
+                            type="checkbox"
+                            checked={isChecked}
+                            disabled={readOnly}
+                            onChange={() => handleToggle(sub.name)}
+                            style={{ width: 16, height: 16, cursor: readOnly ? "default" : "pointer" }}
+                        />
+                        <span style={{ fontSize: 14 }}>{sub.name}</span>
+                    </label>
+                );
+            })}
+        </div>
+    );
+}
+
+export function ProductSubcategorySelect(props: ArrayOfPrimitivesInputProps<string | number | boolean>) {
+    return <ProductSubcategorySelectInner {...props} />;
+}

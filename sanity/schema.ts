@@ -3,7 +3,7 @@
  * 在 Sanity Studio 中可編輯產品、文章、關於我們、網站設定
  */
 import { defineType, defineField, defineArrayMember } from "sanity";
-import { ProductCategorySelect, ArticleCategorySelect } from "../src/studio/components/CategorySelect";
+import { ProductCategorySelect, ArticleCategorySelect, ProductSubcategorySelect } from "../src/studio/components/CategorySelect";
 
 /**
  * 分類設定（singleton）：在「分類設定」頁統一管理產品與文章分類
@@ -28,13 +28,41 @@ export const categorySettings = defineType({
               name: "name",
               title: "分類名稱",
               type: "string",
-              description: "例如：Skincare、Body Care、旅遊。產品選單中會出現此名稱。",
+              description: "例如：Skincare、Body Care。產品選單中會出現此名稱。",
               validation: (r) => r.required(),
+            },
+            {
+              name: "subcategories",
+              title: "子分類",
+              type: "array",
+              description: "此主分類底下的子分類。可新増、刪除、拖曳排序。",
+              of: [
+                defineArrayMember({
+                  type: "object",
+                  name: "productSubcategoryItem",
+                  fields: [
+                    {
+                      name: "name",
+                      title: "子分類名稱",
+                      type: "string",
+                      description: "例如：Body Lotion、Scrub。",
+                      validation: (r) => r.required(),
+                    },
+                  ],
+                  preview: {
+                    select: { name: "name" },
+                    prepare: ({ name }) => ({ title: name || "（未命名）" }),
+                  },
+                }),
+              ],
             },
           ],
           preview: {
-            select: { name: "name" },
-            prepare: ({ name }) => ({ title: name || "（未命名）" }),
+            select: { name: "name", subcategories: "subcategories" },
+            prepare: ({ name, subcategories }) => ({
+              title: name || "（未命名）",
+              subtitle: subcategories?.length > 0 ? `${subcategories.length} 個子分類` : undefined,
+            }),
           },
         }),
       ],
@@ -127,12 +155,20 @@ export const product = defineType({
     }),
     defineField({
       name: "category",
-      title: "產品分類",
+      title: "產品主分類",
       type: "array",
       of: [{ type: "string" }],
-      description: "請先在「分類設定」建立分類，再勾選適用的分類。",
+      description: "請先在「分類設定」建立分類，再勾選適用的主分類。",
       validation: (r) => r.required(),
       components: { input: ProductCategorySelect },
+    }),
+    defineField({
+      name: "subcategory",
+      title: "產品子分類",
+      type: "array",
+      of: [{ type: "string" }],
+      description: "選擇主分類後，再勾選該主分類底下的子分類。",
+      components: { input: ProductSubcategorySelect },
     }),
     defineField({
       name: "price",

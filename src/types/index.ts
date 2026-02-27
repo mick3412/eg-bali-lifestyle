@@ -9,6 +9,7 @@ export interface ProductCategoryItem {
   slug: string;
   name: string;
   order?: number;
+  subcategories?: { id: string; slug: string; name: string }[];
 }
 
 export interface Product {
@@ -16,8 +17,10 @@ export interface Product {
   slug: string;
   name: string;
   nameEn?: string;
-  /** 分類 slug，與 ProductCategoryItem.slug 對應（現支援多選） */
+  /** 主分類（可複選） */
   category: string[];
+  /** 子分類（可複選，依主分類決定可選項） */
+  subcategory?: string[];
   price: number;
   originalPrice?: number;
   description: string;

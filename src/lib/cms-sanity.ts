@@ -119,16 +119,32 @@ export async function getArticleCategoriesFromSanity(): Promise<{ id: string; na
     .map((c, i) => ({ id: c._key ?? String(i), name: c.name.trim(), order: i }));
 }
 
-/** 取得產品分類列表（從 categorySettings 陰列，依拖曳順序） */
+/** 取得產品分類列表（含子分類，依拖曳順序） */
 export async function getCategoriesFromSanity(): Promise<ProductCategoryItem[]> {
   if (!isSanityConfigured()) return [];
-  const doc = await getClient().fetch<{ productCategories?: Array<{ _key?: string; name?: string } | null> } | null>(
-    `*[_type == "categorySettings"][0] { "productCategories": productCategories[] { _key, name } }`
+  const doc = await getClient().fetch<{
+    productCategories?: Array<{
+      _key?: string;
+      name?: string;
+      subcategories?: Array<{ _key?: string; name?: string } | null>;
+    } | null>;
+  } | null>(
+    `*[_type == "categorySettings"][0] { "productCategories": productCategories[] { _key, name, subcategories[]{ _key, name } } }`
   );
   const list = doc?.productCategories ?? [];
   return list
-    .filter((c): c is { _key: string; name: string } => !!c && typeof c.name === "string" && c.name.trim().length > 0)
-    .map((c, i) => ({ id: c._key ?? String(i), slug: c.name.trim(), name: c.name.trim(), order: i }));
+    .filter((c): c is { _key: string; name: string; subcategories?: Array<{ _key?: string; name?: string } | null> } =>
+      !!c && typeof c.name === "string" && c.name.trim().length > 0
+    )
+    .map((c, i) => ({
+      id: c._key ?? String(i),
+      slug: c.name.trim(),
+      name: c.name.trim(),
+      order: i,
+      subcategories: (c.subcategories ?? [])
+        .filter((s): s is { _key: string; name: string } => !!s && typeof s.name === "string" && s.name.trim().length > 0)
+        .map((s, j) => ({ id: s._key ?? String(j), slug: s.name.trim(), name: s.name.trim() })),
+    }));
 }
 
 /** 安全取得分類 slug：相容新版（string）與舊版存檔（reference object） */
@@ -156,6 +172,7 @@ function mapSanityProductToProduct(p: {
   name: string;
   nameEn?: string;
   category?: unknown;
+  subcategory?: unknown;
   price: number;
   originalPrice?: number;
   description: string;
@@ -174,6 +191,7 @@ function mapSanityProductToProduct(p: {
     name: p.name,
     nameEn: p.nameEn,
     category: safeCategoryArray(p.category),
+    subcategory: safeCategoryArray(p.subcategory),
     price: p.price,
     originalPrice: p.originalPrice,
     description: p.description,
@@ -190,7 +208,7 @@ function mapSanityProductToProduct(p: {
 
 /** 產品列表查詢用型別 */
 const productListProjection = `{
-  _id, slug, name, nameEn, category,
+  _id, slug, name, nameEn, category, subcategory,
   price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, buyUrl, featured, homepageOrder, stockStatus
 }`;
 
@@ -276,7 +294,8 @@ export async function getProductBySlugFromSanity(slug: string): Promise<Product 
       slug: { current: string };
       name: string;
       nameEn?: string;
-      category?: string | null;
+      category?: unknown;
+      subcategory?: unknown;
       price: number;
       originalPrice?: number;
       description: string;
@@ -290,7 +309,7 @@ export async function getProductBySlugFromSanity(slug: string): Promise<Product 
       homepageOrder?: number;
       stockStatus?: string;
     } | null
-  >(`*[_type == "product" && slug.current == $slug][0]{ _id, slug, name, nameEn, category, price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, ${productGalleryProjection}, buyUrl, featured, homepageOrder, stockStatus }`, {
+  >(`*[_type == "product" && slug.current == $slug][0]{ _id, slug, name, nameEn, category, subcategory, price, originalPrice, description, descriptionShort, ingredients, sizes, ${productImageProjection}, ${productGalleryProjection}, buyUrl, featured, homepageOrder, stockStatus }`, {
     slug,
   });
   if (!p) return null;
@@ -305,6 +324,7 @@ export async function getProductBySlugFromSanity(slug: string): Promise<Product 
     name: p.name,
     nameEn: p.nameEn,
     category: safeCategoryArray(p.category),
+    subcategory: safeCategoryArray(p.subcategory),
     price: p.price,
     originalPrice: p.originalPrice,
     description: p.description,
