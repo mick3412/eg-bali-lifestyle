@@ -33,8 +33,10 @@ export default async function ShopPage({ searchParams }: Props) {
       ? "all"
       : slugByLower.get(categoryParam.toLowerCase()) ?? "all";
 
+  // Fetch products filtered by main category first
   const products = await getProducts(categorySlug === "all" ? undefined : categorySlug);
 
+  // Then filter by subcategory in JavaScript (avoids complex GROQ)
   const filtered = subParam
     ? products.filter((p) =>
       p.subcategory?.some((s) => s.toLowerCase() === subParam.toLowerCase())
@@ -42,18 +44,14 @@ export default async function ShopPage({ searchParams }: Props) {
     : products;
 
   return (
-    <div className="max-w-6xl mx-auto px-5 py-6 md:py-10">
-      <h1 className="typo-sectionTitle font-semibold text-foreground mb-6 md:mb-8 md:text-center">Shop</h1>
-
-      {/* Categories in standard top-down layout */}
+    <div className="max-w-6xl mx-auto px-5 py-10 md:py-14">
+      <h1 className="typo-sectionTitle font-semibold text-foreground mb-8">Shop</h1>
       <ShopCategoryNav
         categories={categories}
         currentCategory={categorySlug}
         currentSubcategory={subParam}
       />
-
-      {/* Product grid: 2 columns on mobile, 3/4 on larger screens, gap adjustments for mobile compactness */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 md:gap-x-6 md:gap-y-10 mt-4 md:mt-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mt-8">
         {filtered.length > 0 ? (
           filtered.map((product) => (
             <ProductCard key={product.id} product={product} />
