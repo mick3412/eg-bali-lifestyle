@@ -42,34 +42,27 @@ export default async function ShopPage({ searchParams }: Props) {
     : products;
 
   return (
-    <div className="max-w-6xl mx-auto px-5 py-10 md:py-14">
-      <h1 className="typo-sectionTitle font-semibold text-foreground mb-10">Shop</h1>
+    <div className="max-w-6xl mx-auto px-5 py-6 md:py-10">
+      <h1 className="typo-sectionTitle font-semibold text-foreground mb-6 md:mb-8 md:text-center">Shop</h1>
 
-      {/* Two-column layout: left sidebar + right product grid */}
-      <div className="flex gap-4 md:gap-14 items-start">
-        {/* Left sidebar */}
-        <aside className="shrink-0 w-[100px] md:w-36 sticky top-20 md:top-24">
-          <ShopCategoryNav
-            categories={categories}
-            currentCategory={categorySlug}
-            currentSubcategory={subParam}
-          />
-        </aside>
+      {/* Categories in standard top-down layout */}
+      <ShopCategoryNav
+        categories={categories}
+        currentCategory={categorySlug}
+        currentSubcategory={subParam}
+      />
 
-        {/* Product grid */}
-        <div className="flex-1 min-w-0">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
-            {filtered.length > 0 ? (
-              filtered.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))
-            ) : (
-              <p className="col-span-full typo-body text-[var(--muted)] text-center py-12">
-                暫無商品
-              </p>
-            )}
-          </div>
-        </div>
+      {/* Product grid: 2 columns on mobile, 3/4 on larger screens, gap adjustments for mobile compactness */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-8 md:gap-x-6 md:gap-y-10 mt-4 md:mt-8">
+        {filtered.length > 0 ? (
+          filtered.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))
+        ) : (
+          <p className="col-span-full typo-body text-[var(--muted)] text-center py-12">
+            暫無商品
+          </p>
+        )}
       </div>
     </div>
   );
